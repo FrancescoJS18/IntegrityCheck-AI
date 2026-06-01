@@ -1,0 +1,205 @@
+/* ==========================================================================
+   IntegrityCheck AI - Global Stylesheet
+   Design System: Premium Glassmorphism & Cyberpunk Neon
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+:root {
+    /* Color Palette */
+    --bg-base: #070913;
+    --bg-surface: rgba(16, 20, 38, 0.6);
+    --bg-surface-hover: rgba(26, 32, 58, 0.8);
+    --border-color: rgba(255, 255, 255, 0.06);
+    --border-glow: rgba(0, 242, 254, 0.15);
+    
+    /* Neon Accents */
+    --accent-cyan: #00f2fe;
+    --accent-blue: #4facfe;
+    --accent-purple: #7f00ff;
+    --accent-pink: #ff007f;
+    --accent-amber: #ffb800;
+    --accent-emerald: #00e676;
+    
+    /* Text Colors */
+    --text-primary: #ffffff;
+    --text-secondary: #8f9cae;
+    --text-muted: #536279;
+    
+    /* Gradients */
+    --grad-primary: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-cyan) 100%);
+    --grad-purple: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-pink) 100%);
+    --grad-dark: linear-gradient(180deg, #0b0e1f 0%, #070913 100%);
+    
+    /* Shadows & Glows */
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --glow-cyan: 0 0 15px rgba(0, 242, 254, 0.35);
+    --glow-pink: 0 0 15px rgba(255, 0, 127, 0.35);
+    
+    /* Layout Variables */
+    --sidebar-width: 260px;
+    --header-height: 70px;
+    --border-radius: 16px;
+    --transition-speed: 0.3s;
+}
+
+/* Reset & Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-base);
+    background-image: var(--grad-dark);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+    background: var(--bg-surface);
+    backdrop-filter: blur(16px) saturate(120%);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Layout Grid Setup */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Micro-animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 10px rgba(0, 242, 254, 0.2); }
+    50% { box-shadow: 0 0 20px rgba(0, 242, 254, 0.5); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+/* Buttons */
+.btn-primary {
+    background: var(--grad-primary);
+    color: #000000;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 24px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px rgba(0, 242, 254, 0.2);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glow-cyan);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 12px 24px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.25s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Badges for status and risks */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge-grave {
+    background: rgba(255, 0, 127, 0.15);
+    color: #ff3399;
+    border: 1px solid rgba(255, 0, 127, 0.3);
+}
+
+.badge-moderado {
+    background: rgba(255, 184, 0, 0.15);
+    color: var(--accent-amber);
+    border: 1px solid rgba(255, 184, 0, 0.3);
+}
+
+.badge-leve {
+    background: rgba(0, 230, 118, 0.15);
+    color: var(--accent-emerald);
+    border: 1px solid rgba(0, 230, 118, 0.3);
+}
+
+.badge-pendiente {
+    background: rgba(255, 184, 0, 0.1);
+    color: var(--accent-amber);
+}
+
+.badge-revision {
+    background: rgba(79, 172, 254, 0.1);
+    color: var(--accent-blue);
+}
+
+.badge-cerrado {
+    background: rgba(0, 230, 118, 0.1);
+    color: var(--accent-emerald);
+}

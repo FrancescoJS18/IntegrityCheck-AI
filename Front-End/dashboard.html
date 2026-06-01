@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - IntegrityCheck AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <!-- FontAwesome para iconos modernos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- Sidebar lateral de navegación -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-logo">
+                    <i class="fa-solid fa-shield-halved"></i> IntegrityCheck
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li class="active">
+                    <a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                </li>
+                <li>
+                    <a href="alertas.html"><i class="fa-solid fa-triangle-exclamation"></i> Alertas</a>
+                </li>
+                <li>
+                    <a href="reportes.html"><i class="fa-solid fa-file-invoice"></i> Reportes & IA</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-panel">
+                    <div class="user-avatar" id="user-avatar-text">UA</div>
+                    <div class="user-info">
+                        <span class="user-name" id="user-display-name">Usuario</span>
+                        <span class="user-role" id="user-display-role">Cargando...</span>
+                    </div>
+                </div>
+                <a href="#" id="btn-logout" style="display: block; margin-top: 15px; color: var(--accent-pink); font-size: 0.85rem; text-decoration: none; padding-left: 10px; font-weight: 600;">
+                    <i class="fa-solid fa-power-off"></i> Cerrar Sesión
+                </a>
+            </div>
+        </aside>
+
+        <!-- Contenido principal -->
+        <main class="main-content">
+            
+            <header class="main-header">
+                <div class="header-title">
+                    <h1>Resumen Ejecutivo BI</h1>
+                </div>
+                <div class="header-actions">
+                    <span id="current-date" style="color: var(--text-secondary); font-size: 0.85rem;">2026-06-01</span>
+                    <i class="fa-regular fa-bell" style="font-size: 1.2rem; cursor: pointer; color: var(--text-secondary);"></i>
+                </div>
+            </header>
+
+            <div class="view-container animate-fade-in">
+                
+                <!-- Fila de Tarjetas KPI -->
+                <div class="metrics-grid">
+                    <div class="metric-card glass-panel">
+                        <div class="metric-header">
+                            <span>TOTAL CASOS REGISTRADOS</span>
+                            <i class="fa-solid fa-clipboard-list" style="color: var(--accent-blue)"></i>
+                        </div>
+                        <div class="metric-value" id="val-total-casos">--</div>
+                        <div class="metric-footer">Casos acumulados de fraude</div>
+                    </div>
+
+                    <div class="metric-card glass-panel alert">
+                        <div class="metric-header">
+                            <span>CASOS PENDIENTES</span>
+                            <i class="fa-solid fa-triangle-exclamation" style="color: var(--accent-pink)"></i>
+                        </div>
+                        <div class="metric-value" id="val-casos-pendientes" style="color: var(--accent-pink)">--</div>
+                        <div class="metric-footer">Requieren revisión urgente</div>
+                    </div>
+
+                    <div class="metric-card glass-panel">
+                        <div class="metric-header">
+                            <span>ÍNDICE DE INTEGRIDAD</span>
+                            <i class="fa-solid fa-scale-balanced" style="color: var(--accent-amber)"></i>
+                        </div>
+                        <div class="metric-value" id="val-indice-integridad" style="color: var(--accent-amber)">--</div>
+                        <div class="metric-footer">Indicador general del campus</div>
+                    </div>
+
+                    <div class="metric-card glass-panel">
+                        <div class="metric-header">
+                            <span>SIMILITUD PROMEDIO</span>
+                            <i class="fa-solid fa-align-left" style="color: var(--accent-emerald)"></i>
+                        </div>
+                        <div class="metric-value" id="val-similitud-promedio" style="color: var(--accent-emerald)">--</div>
+                        <div class="metric-footer">Métricas de plagio Turnitin</div>
+                    </div>
+                </div>
+
+                <!-- Gráficos de Tendencias -->
+                <div class="charts-grid">
+                    <div class="chart-card glass-panel">
+                        <div class="chart-title">
+                            <span>Evolución Mensual de Incidentes (2026-I)</span>
+                            <i class="fa-solid fa-chart-line" style="color: var(--accent-cyan)"></i>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-tendencia"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card glass-panel">
+                        <div class="chart-title">
+                            <span>Tipos de Fraude</span>
+                            <i class="fa-solid fa-chart-pie" style="color: var(--accent-purple)"></i>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart-distribucion"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparativa de Facultades & Alertas Críticas -->
+                <div class="charts-grid">
+                    <div class="chart-card glass-panel">
+                        <div class="chart-title">
+                            <span>Alertas Más Críticas Recientes</span>
+                            <a href="alertas.html" style="font-size: 0.8rem; color: var(--accent-cyan); text-decoration: none;">Ver todas <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table-glass">
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Estudiante</th>
+                                        <th>Curso</th>
+                                        <th>Gravedad</th>
+                                        <th>Puntaje Riesgo</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body-alertas-dashboard">
+                                    <tr>
+                                        <td colspan="6" style="text-align: center; color: var(--text-muted)">Cargando incidentes...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="chart-card glass-panel">
+                        <div class="chart-title">
+                            <span>Ranking de Facultades</span>
+                            <i class="fa-solid fa-ranking-star" style="color: var(--accent-amber)"></i>
+                        </div>
+                        <!-- Canvas oculto o pequeño para el bar chart comparativo -->
+                        <div class="chart-container" style="height: 140px; margin-bottom: 20px;">
+                            <canvas id="chart-facultades"></canvas>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table-glass" style="font-size: 0.8rem;">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Facultad</th>
+                                        <th class="text-right">Alum.</th>
+                                        <th class="text-right">Casos</th>
+                                        <th class="text-right">Tasa</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-body-ranking">
+                                    <!-- Dinámico -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts de visualización -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+        document.getElementById("current-date").textContent = new Date().toISOString().slice(0,10);
+    </script>
+</body>
+</html>

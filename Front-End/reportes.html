@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes e Inteligencia Artificial - IntegrityCheck AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .report-section-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 900px) {
+            .report-section-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .playground-card {
+            padding: 25px;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(0, 242, 254, 0.04);
+            border: 1px solid rgba(0, 242, 254, 0.15);
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Estilos específicos para impresión de PDF */
+        @media print {
+            body {
+                background: #fff;
+                color: #000;
+            }
+            .sidebar, .main-header, .filter-row, #btn-export, .playground-card {
+                display: none !important;
+            }
+            .main-content {
+                padding: 0;
+            }
+            .glass-panel {
+                border: 1px solid #ccc !important;
+                box-shadow: none !important;
+                background: #fff !important;
+                color: #000 !important;
+            }
+            .metric-value {
+                color: #000 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- Sidebar lateral de navegación -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-logo">
+                    <i class="fa-solid fa-shield-halved"></i> IntegrityCheck
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                </li>
+                <li>
+                    <a href="alertas.html"><i class="fa-solid fa-triangle-exclamation"></i> Alertas</a>
+                </li>
+                <li class="active">
+                    <a href="reportes.html"><i class="fa-solid fa-file-invoice"></i> Reportes & IA</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-panel">
+                    <div class="user-avatar" id="user-avatar-text">UA</div>
+                    <div class="user-info">
+                        <span class="user-name" id="user-display-name">Usuario</span>
+                        <span class="user-role" id="user-display-role">Cargando...</span>
+                    </div>
+                </div>
+                <a href="#" id="btn-logout" style="display: block; margin-top: 15px; color: var(--accent-pink); font-size: 0.85rem; text-decoration: none; padding-left: 10px; font-weight: 600;">
+                    <i class="fa-solid fa-power-off"></i> Cerrar Sesión
+                </a>
+            </div>
+        </aside>
+
+        <!-- Contenido principal -->
+        <main class="main-content">
+            
+            <header class="main-header">
+                <div class="header-title">
+                    <h1>Módulo de Inteligencia Artificial</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-primary" id="btn-export" onclick="window.print()">
+                        <i class="fa-solid fa-file-pdf"></i> Exportar Reporte (PDF)
+                    </button>
+                </div>
+            </header>
+
+            <div class="view-container animate-fade-in">
+                
+                <!-- Sección 1: Métricas de los Modelos (BI & IA Audit) -->
+                <div class="chart-card glass-panel" style="margin-bottom: 30px;">
+                    <div class="chart-title">
+                        <span>Desempeño de Modelos de Inteligencia Artificial</span>
+                        <i class="fa-solid fa-microchip" style="color: var(--accent-cyan)"></i>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table-glass">
+                            <thead>
+                                <tr>
+                                    <th>Nombre del Modelo / Algoritmo</th>
+                                    <th>Estado</th>
+                                    <th class="text-right">F1-Score / Params</th>
+                                    <th class="text-right">Precisión / Contaminación</th>
+                                    <th class="text-right">Última Actualización</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body-model-metrics">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: var(--text-muted)">Cargando métricas de modelos...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Sección 2: Playgrounds / Simuladores del Motor Predictivo (Sandboxes) -->
+                <div class="report-section-grid">
+                    
+                    <!-- Sandbox A: Detección de Plagio NLP -->
+                    <div class="playground-card glass-panel">
+                        <h3 style="font-family: 'Outfit'; font-size: 1.2rem; margin-bottom: 15px; color: var(--accent-cyan);">
+                            <i class="fa-solid fa-paragraph"></i> Sandbox de Plagio Textual (NLP)
+                        </h3>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 20px;">
+                            Ingresa el texto de un entregable académico para medir el porcentaje de similitud computado por TF-IDF y similitud coseno contra el corpus.
+                        </p>
+                        
+                        <form id="form-sandbox-plagio">
+                            <div class="form-group">
+                                <label for="text-plagio-input" class="label">Texto del Trabajo</label>
+                                <textarea id="text-plagio-input" class="form-input" style="height: 120px; font-size: 0.85rem; width: 100%;" placeholder="Escriba o pegue el texto del documento..." required></textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn-primary" style="width: 100%;">
+                                <i class="fa-solid fa-magnifying-glass"></i> Analizar Trabajo
+                            </button>
+                        </form>
+                        
+                        <div id="result-plagio-box" class="result-box">
+                            <h4 style="font-family:'Outfit'; font-weight:700; color: #fff; margin-bottom: 5px;">Resultado de Plagio:</h4>
+                            <div style="font-size: 1.8rem; font-weight: 800; font-family:'Outfit'; color: var(--accent-pink);" id="val-res-plagio">--%</div>
+                            <p style="font-size: 0.78rem; color: var(--text-secondary);" id="desc-res-plagio">Calculando similitud...</p>
+                        </div>
+                    </div>
+
+                    <!-- Sandbox B: Clasificación de Riesgo Estudiante (Random Forest) -->
+                    <div class="playground-card glass-panel">
+                        <h3 style="font-family: 'Outfit'; font-size: 1.2rem; margin-bottom: 15px; color: var(--accent-purple);">
+                            <i class="fa-solid fa-user-shield"></i> Evaluar Estudiante (Random Forest)
+                        </h3>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 20px;">
+                            Simule características del comportamiento académico para calcular la probabilidad de riesgo de fraude según el clasificador.
+                        </p>
+                        
+                        <form id="form-sandbox-riesgo">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label class="label" style="font-size:0.7rem;">Promedio Notas Ciclo</label>
+                                    <input type="number" id="input-promedio" class="form-input" style="padding:8px 12px;" step="0.1" value="11.5" min="0" max="20" required>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label class="label" style="font-size:0.7rem;">Variación Nota Examen</label>
+                                    <input type="number" id="input-variacion" class="form-input" style="padding:8px 12px;" step="0.1" value="4.5" min="-5" max="15" required>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label class="label" style="font-size:0.7rem;">% Similitud Turnitin</label>
+                                    <input type="number" id="input-sim" class="form-input" style="padding:8px 12px;" value="85" min="0" max="100" required>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label class="label" style="font-size:0.7rem;">Tiempo Respuesta (Min)</label>
+                                    <input type="number" id="input-tiempo" class="form-input" style="padding:8px 12px;" value="15" min="1" max="180" required>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label class="label" style="font-size:0.7rem;">Accesos LMS/Semana</label>
+                                    <input type="number" id="input-accesos" class="form-input" style="padding:8px 12px;" value="2" min="0" max="100" required>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label class="label" style="font-size:0.7rem;">Cambios IP Examen</label>
+                                    <input type="number" id="input-ips" class="form-input" style="padding:8px 12px;" value="3" min="0" max="10" required>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn-primary" style="width: 100%; box-shadow: 0 4px 15px rgba(127, 0, 255, 0.2); background: var(--grad-purple);">
+                                <i class="fa-solid fa-calculator"></i> Calcular Riesgo
+                            </button>
+                        </form>
+                        
+                        <div id="result-riesgo-box" class="result-box" style="background: rgba(127, 0, 255, 0.04); border-color: rgba(127, 0, 255, 0.25);">
+                            <h4 style="font-family:'Outfit'; font-weight:700; color: #fff; margin-bottom: 5px;">Riesgo de Fraude Calculado:</h4>
+                            <div style="font-size: 1.8rem; font-weight: 800; font-family:'Outfit'; color: var(--accent-amber);" id="val-res-riesgo">--%</div>
+                            <p style="font-size: 0.78rem; color: var(--text-secondary);" id="desc-res-riesgo">Mapeando características...</p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (!ApiClient.validarSesion()) return;
+
+            // Perfil
+            const user = ApiClient.obtenerUsuarioLogueado();
+            document.getElementById("user-display-name").textContent = user.nombre;
+            document.getElementById("user-display-role").textContent = user.rol;
+            document.getElementById("user-avatar-text").textContent = user.nombre.substring(0,2).toUpperCase();
+            
+            document.getElementById("btn-logout").addEventListener("click", () => ApiClient.cerrarSesion());
+            
+            document.getElementById("form-sandbox-plagio").addEventListener("submit", (e) => evaluarPlagioSandbox(e));
+            document.getElementById("form-sandbox-riesgo").addEventListener("submit", (e) => evaluarRiesgoSandbox(e));
+            
+            cargarMetricasModelos();
+        });
+
+        async function cargarMetricasModelos() {
+            try {
+                const data = await ApiClient.getReporteMensual();
+                if (data && data.modelos) {
+                    const tbody = document.getElementById("table-body-model-metrics");
+                    tbody.innerHTML = "";
+                    
+                    const m = data.modelos;
+                    
+                    // Fila Riesgo
+                    const trRiesgo = document.createElement("tr");
+                    trRiesgo.innerHTML = `
+                        <td><strong>${m.modelo_riesgo.nombre}</strong></td>
+                        <td><span class="badge ${m.modelo_riesgo.entrenado ? 'badge-leve':'badge-grave'}">${m.modelo_riesgo.entrenado ? 'ACTIVO':'INACTIVO'}</span></td>
+                        <td class="text-right">F1-Score: ${m.modelo_riesgo.f1_score.toFixed(3)} | AUC: ${m.modelo_riesgo.auc_roc.toFixed(3)}</td>
+                        <td class="text-right">Accuracy: ${(m.modelo_riesgo.accuracy * 100).toFixed(1)}%</td>
+                        <td class="text-right">${m.modelo_riesgo.ultima_actualizacion}</td>
+                    `;
+                    tbody.appendChild(trRiesgo);
+
+                    // Fila Plagio
+                    const trPlagio = document.createElement("tr");
+                    trPlagio.innerHTML = `
+                        <td><strong>${m.modelo_plagio.nombre}</strong></td>
+                        <td><span class="badge ${m.modelo_plagio.entrenado ? 'badge-leve':'badge-grave'}">${m.modelo_plagio.entrenado ? 'ACTIVO':'INACTIVO'}</span></td>
+                        <td class="text-right">N-Gram: ${m.modelo_plagio.ngram_range} | Features: ${m.modelo_plagio.max_features}</td>
+                        <td class="text-right">Accuracy: ${(m.modelo_plagio.accuracy * 100).toFixed(1)}%</td>
+                        <td class="text-right">${m.modelo_plagio.ultima_actualizacion}</td>
+                    `;
+                    tbody.appendChild(trPlagio);
+
+                    // Fila Anomalía
+                    const trAnomalia = document.createElement("tr");
+                    trAnomalia.innerHTML = `
+                        <td><strong>${m.modelo_anomalia.nombre}</strong></td>
+                        <td><span class="badge ${m.modelo_anomalia.entrenado ? 'badge-leve':'badge-grave'}">${m.modelo_anomalia.entrenado ? 'ACTIVO':'INACTIVO'}</span></td>
+                        <td class="text-right">Contam: ${m.modelo_anomalia.contaminacion}</td>
+                        <td class="text-right">Accuracy: ${(m.modelo_anomalia.accuracy * 100).toFixed(1)}%</td>
+                        <td class="text-right">${m.modelo_anomalia.ultima_actualizacion}</td>
+                    `;
+                    tbody.appendChild(trAnomalia);
+                }
+            } catch (err) {
+                console.error("Error al cargar métricas de modelos:", err);
+            }
+        }
+
+        async function evaluarPlagioSandbox(e) {
+            e.preventDefault();
+            const texto = document.getElementById("text-plagio-input").value;
+            const resBox = document.getElementById("result-plagio-box");
+            const valSpan = document.getElementById("val-res-plagio");
+            const descP = document.getElementById("desc-res-plagio");
+            
+            resBox.style.display = "none";
+            
+            try {
+                const res = await ApiClient.predecirPlagio(texto);
+                if (res) {
+                    valSpan.textContent = `${res.porcentaje_similitud.toFixed(1)}%`;
+                    
+                    if (res.porcentaje_similitud > 50) {
+                        valSpan.style.color = "var(--accent-pink)";
+                        descP.textContent = "Alerta: Alto porcentaje de coincidencia detectado contra el corpus de tesis/trabajos.";
+                    } else {
+                        valSpan.style.color = "var(--accent-emerald)";
+                        descP.textContent = "Trabajo original. Nivel de plagio dentro del umbral permitido.";
+                    }
+                    resBox.style.display = "block";
+                }
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        }
+
+        async function evaluarRiesgoSandbox(e) {
+            e.preventDefault();
+            const resBox = document.getElementById("result-riesgo-box");
+            const valSpan = document.getElementById("val-res-riesgo");
+            const descP = document.getElementById("desc-res-riesgo");
+            
+            const payload = {
+                promedio_notas_ciclo: parseFloat(document.getElementById("input-promedio").value),
+                variacion_nota: parseFloat(document.getElementById("input-variacion").value),
+                porcentaje_similitud: parseFloat(document.getElementById("input-sim").value),
+                tiempo_respuesta_examen: parseFloat(document.getElementById("input-tiempo").value),
+                accesos_lms_semana: parseFloat(document.getElementById("input-accesos").value),
+                cambios_ip_examen: parseInt(document.getElementById("input-ips").value)
+            };
+            
+            resBox.style.display = "none";
+            
+            try {
+                const res = await ApiClient.predecirRiesgo(payload);
+                if (res) {
+                    valSpan.textContent = `${res.puntaje_riesgo.toFixed(1)}%`;
+                    
+                    if (res.puntaje_riesgo >= 75) {
+                        valSpan.style.color = "var(--accent-pink)";
+                        descP.textContent = "Alerta Crítica: El clasificador predice un alto riesgo de colusión o copia virtual.";
+                    } else if (res.puntaje_riesgo >= 40) {
+                        valSpan.style.color = "var(--accent-amber)";
+                        descP.textContent = "Precaución: Parámetros irregulares. Mantener en revisión preventiva.";
+                    } else {
+                        valSpan.style.color = "var(--accent-emerald)";
+                        descP.textContent = "Normal: Comportamiento académico alineado a los patrones estándar.";
+                    }
+                    resBox.style.display = "block";
+                }
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        }
+    </script>
+</body>
+</html>

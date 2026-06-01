@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceder - IntegrityCheck AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/api.js"></script>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #070913 0%, #0c0f2b 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Fondo cyber de cuadrículas o luces abstractas */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 242, 254, 0.15) 0%, rgba(0,0,0,0) 70%);
+            top: 10%;
+            left: 15%;
+            filter: blur(50px);
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 0, 127, 0.12) 0%, rgba(0,0,0,0) 70%);
+            bottom: 10%;
+            right: 15%;
+            filter: blur(60px);
+            z-index: 0;
+        }
+
+        .login-card {
+            width: 450px;
+            padding: 40px;
+            z-index: 10;
+            position: relative;
+            animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-family: 'Outfit', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: #fff;
+            outline: none;
+            font-size: 0.95rem;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .login-btn {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .error-glow {
+            display: none;
+            background: rgba(255, 0, 127, 0.1);
+            border: 1px solid rgba(255, 0, 127, 0.3);
+            border-radius: 8px;
+            color: #ff3399;
+            padding: 12px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Demo/Helper Credentials panel */
+        .demo-panel {
+            margin-top: 30px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px dashed rgba(255, 255, 255, 0.05);
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .demo-panel h4 {
+            color: var(--text-primary);
+            font-size: 0.82rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+        }
+
+        .demo-badge {
+            cursor: pointer;
+            display: inline-block;
+            background: rgba(0, 242, 254, 0.05);
+            border: 1px solid rgba(0, 242, 254, 0.2);
+            color: var(--accent-cyan);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin: 4px 4px 4px 0;
+            transition: all 0.2s ease;
+        }
+
+        .demo-badge:hover {
+            background: var(--accent-cyan);
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card glass-panel">
+        <div class="login-header">
+            <h2>IntegrityCheck AI</h2>
+            <p>Plataforma BI de Fraude Académico</p>
+        </div>
+
+        <div id="error-box" class="error-glow">
+            Credenciales incorrectas. Intente nuevamente.
+        </div>
+
+        <form id="login-form">
+            <div class="form-group">
+                <label for="username">Usuario Institucional</label>
+                <input type="email" id="username" class="form-input" placeholder="ejemplo@integrity.edu.pe" required autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="btn-primary login-btn">Autenticar Sistema</button>
+        </form>
+
+        <div class="demo-panel">
+            <h4>Accesos rápidos de prueba (haz clic para rellenar):</h4>
+            <span class="demo-badge" onclick="fillCreds('rector@integrity.edu.pe', 'rector123')">Rector</span>
+            <span class="demo-badge" onclick="fillCreds('decano_ing@integrity.edu.pe', 'decano123')">Decano Ingeniería</span>
+            <span class="demo-badge" onclick="fillCreds('decano@integrity.edu.pe', 'decano123')">Decano Derecho</span>
+            <span class="demo-badge" onclick="fillCreds('auditor@integrity.edu.pe', 'auditor123')">Auditor</span>
+        </div>
+    </div>
+
+    <script>
+        // Redireccionar si ya tiene una sesión
+        if (localStorage.getItem("token")) {
+            window.location.href = "dashboard.html";
+        }
+
+        function fillCreds(user, pass) {
+            document.getElementById("username").value = user;
+            document.getElementById("password").value = pass;
+        }
+
+        document.getElementById("login-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const user = document.getElementById("username").value;
+            const pass = document.getElementById("password").value;
+            const errorBox = document.getElementById("error-box");
+            
+            errorBox.style.display = "none";
+            
+            try {
+                const loggedIn = await ApiClient.login(user, pass);
+                if (loggedIn) {
+                    window.location.href = "dashboard.html";
+                } else {
+                    errorBox.style.display = "block";
+                    errorBox.textContent = "Credenciales incorrectas o servidor inactivo.";
+                }
+            } catch (err) {
+                console.error(err);
+                errorBox.style.display = "block";
+                errorBox.textContent = err.message || "Error al conectar con la API Flask.";
+            }
+        });
+    </script>
+</body>
+</html>

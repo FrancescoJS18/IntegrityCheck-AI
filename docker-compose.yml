@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: integritycheck_db
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=IntegrityCheckDbSA123!
+      - MSSQL_PID=Developer
+      - MSSQL_COLLATION=Latin1_General_CI_AS
+    volumes:
+      - mssql_data:/var/opt/mssql
+
+  backend:
+    image: python:3.10-slim
+    container_name: integritycheck_backend
+    ports:
+      - "5000:5000"
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_HOST=0.0.0.0
+      - FLASK_PORT=5000
+      - FLASK_DEBUG=True
+      - DB_SERVER=db
+      - DB_DATABASE=IntegrityCheckAI
+      - DB_PORT=1433
+      - DB_USERNAME=sa
+      - DB_PASSWORD=IntegrityCheckDbSA123!
+      - DB_TRUSTED_CONNECTION=False
+      - JWT_SECRET_KEY=integritycheck_jwt_secret_key_67890!
+    command: >
+      sh -c "apt-get update && apt-get install -y unixodbc unixodbc-dev g++ curl gnupg &&
+             curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - &&
+             curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list &&
+             apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql17 &&
+             pip install --no-cache-dir -r Back-End/requirements.txt -r ML/requirements_ml.txt &&
+             python Back-End/app.py"
+    depends_on:
+      - db
+
+volumes:
+  mssql_data:

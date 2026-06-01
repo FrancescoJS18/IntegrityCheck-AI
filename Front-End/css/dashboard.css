@@ -1,0 +1,326 @@
+/* ==========================================================================
+   IntegrityCheck AI - Dashboard Specific Stylesheet
+   ========================================================================== */
+
+/* Sidebar Layout */
+.sidebar {
+    width: var(--sidebar-width);
+    border-right: 1px solid var(--border-color);
+    background: rgba(11, 14, 31, 0.95);
+    display: flex;
+    flex-direction: column;
+    padding: 30px 20px;
+    z-index: 100;
+}
+
+.sidebar .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 40px;
+    padding-left: 10px;
+}
+
+.sidebar .brand-logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    font-family: 'Outfit', sans-serif;
+    background: var(--grad-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidebar-menu {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar-menu li a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.sidebar-menu li a:hover,
+.sidebar-menu li.active a {
+    color: var(--text-primary);
+    background: rgba(0, 242, 254, 0.08);
+    border-left: 3px solid var(--accent-cyan);
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    border-top: 1px solid var(--border-color);
+    padding-top: 20px;
+}
+
+/* User Info Panel */
+.user-panel {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--grad-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.user-role {
+    font-size: 0.72rem;
+    color: var(--accent-cyan);
+    font-weight: 500;
+}
+
+/* Main Dashboard Layout */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.main-header {
+    height: var(--header-height);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    background: rgba(7, 9, 19, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+.header-title h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.view-container {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+/* Metrics Dashboard Grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.metric-card {
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--grad-primary);
+}
+
+.metric-card.alert::before {
+    background: var(--grad-purple);
+}
+
+.metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+}
+
+.metric-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    line-height: 1.1;
+    margin-bottom: 8px;
+}
+
+.metric-footer {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.metric-footer span {
+    color: var(--accent-emerald);
+    font-weight: 600;
+}
+
+/* Charts Grid */
+.charts-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+@media (max-width: 1024px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.chart-card {
+    padding: 24px;
+}
+
+.chart-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chart-container {
+    position: relative;
+    height: 320px;
+    width: 100%;
+}
+
+/* Glassmorphic Form Inputs & Filters */
+.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+    align-items: center;
+}
+
+.input-glass {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.25s ease;
+}
+
+.input-glass:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
+}
+
+select.input-glass option {
+    background: #0f1326;
+    color: var(--text-primary);
+}
+
+/* Data Tables */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table-glass {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.table-glass th {
+    padding: 16px 20px;
+    font-family: 'Outfit', sans-serif;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table-glass td {
+    padding: 16px 20px;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.2s ease;
+}
+
+.table-glass tr:hover td {
+    background: rgba(255, 255, 255, 0.015);
+}
+
+/* Alert/Risk Visualizer */
+.risk-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.risk-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.risk-high {
+    color: var(--accent-pink);
+    font-weight: 700;
+}
+.risk-high .risk-dot { background: var(--accent-pink); box-shadow: 0 0 8px var(--accent-pink); }
+
+.risk-medium {
+    color: var(--accent-amber);
+    font-weight: 600;
+}
+.risk-medium .risk-dot { background: var(--accent-amber); box-shadow: 0 0 8px var(--accent-amber); }
+
+.risk-low {
+    color: var(--accent-emerald);
+    font-weight: 500;
+}
+.risk-low .risk-dot { background: var(--accent-emerald); box-shadow: 0 0 8px var(--accent-emerald); }

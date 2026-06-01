@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alertas - IntegrityCheck AI</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estilos de modal de detalles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            width: 650px;
+            padding: 30px;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            transition: color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: #fff;
+        }
+
+        .modal-header h3 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            background: var(--grad-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 20px;
+            margin-bottom: 25px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding-bottom: 8px;
+        }
+
+        .detail-item span.label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .detail-item span.value {
+            font-size: 0.95rem;
+            color: #fff;
+            margin-top: 2px;
+        }
+
+        /* Indicador circular de porcentaje grande */
+        .gauge-holder {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(255,255,255,0.02);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            grid-column: span 2;
+        }
+
+        .large-score {
+            font-size: 2.2rem;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- Sidebar lateral de navegación -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-logo">
+                    <i class="fa-solid fa-shield-halved"></i> IntegrityCheck
+                </div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                </li>
+                <li class="active">
+                    <a href="alertas.html"><i class="fa-solid fa-triangle-exclamation"></i> Alertas</a>
+                </li>
+                <li>
+                    <a href="reportes.html"><i class="fa-solid fa-file-invoice"></i> Reportes & IA</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-panel">
+                    <div class="user-avatar" id="user-avatar-text">UA</div>
+                    <div class="user-info">
+                        <span class="user-name" id="user-display-name">Usuario</span>
+                        <span class="user-role" id="user-display-role">Cargando...</span>
+                    </div>
+                </div>
+                <a href="#" id="btn-logout" style="display: block; margin-top: 15px; color: var(--accent-pink); font-size: 0.85rem; text-decoration: none; padding-left: 10px; font-weight: 600;">
+                    <i class="fa-solid fa-power-off"></i> Cerrar Sesión
+                </a>
+            </div>
+        </aside>
+
+        <!-- Contenido principal -->
+        <main class="main-content">
+            
+            <header class="main-header">
+                <div class="header-title">
+                    <h1>Bandeja de Casos de Fraude</h1>
+                </div>
+                <div class="header-actions">
+                    <span id="current-date" style="color: var(--text-secondary); font-size: 0.85rem;">--</span>
+                </div>
+            </header>
+
+            <div class="view-container animate-fade-in">
+                
+                <!-- Barra de Filtros -->
+                <div class="filter-row glass-panel" style="padding: 20px; border-radius: 12px; margin-bottom: 30px;">
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Facultad</label>
+                        <select id="filter-facultad" class="input-glass">
+                            <option value="">TODAS LAS FACULTADES</option>
+                            <option value="Facultad de Ingeniería">FACULTAD DE INGENIERÍA</option>
+                            <option value="Facultad de Derecho">FACULTAD DE DERECHO</option>
+                            <option value="Facultad de Medicina">FACULTAD DE MEDICINA</option>
+                            <option value="Facultad de Administración">FACULTAD DE ADMINISTRACIÓN</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Gravedad</label>
+                        <select id="filter-gravedad" class="input-glass">
+                            <option value="">TODOS LOS NIVELES</option>
+                            <option value="GRAVE">GRAVE</option>
+                            <option value="MODERADO">MODERADO</option>
+                            <option value="LEVE">LEVE</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Estado Caso</label>
+                        <select id="filter-estado" class="input-glass">
+                            <option value="">TODOS LOS ESTADOS</option>
+                            <option value="PENDIENTE">PENDIENTE</option>
+                            <option value="EN_REVISION">EN REVISIÓN</option>
+                            <option value="CERRADO">CERRADO</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase;">Umbral Riesgo (>=)</label>
+                        <input type="number" id="filter-umbral" class="input-glass" style="width: 100px;" value="70" min="0" max="100">
+                    </div>
+
+                    <button id="btn-filtrar" class="btn-primary" style="margin-top: auto; padding: 10px 20px;">
+                        <i class="fa-solid fa-filter"></i> Aplicar Filtros
+                    </button>
+                </div>
+
+                <!-- Tabla de Alertas Completa -->
+                <div class="chart-card glass-panel">
+                    <div class="table-responsive">
+                        <table class="table-glass">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Estudiante</th>
+                                    <th>Facultad</th>
+                                    <th>Curso</th>
+                                    <th>Gravedad</th>
+                                    <th>Score Riesgo</th>
+                                    <th>Estado</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body-alertas">
+                                <tr>
+                                    <td colspan="8" style="text-align: center; color: var(--text-muted)">Cargando registros...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Detalle del Caso -->
+    <div id="modal-detalle" class="modal">
+        <div class="modal-content glass-panel animate-fade-in">
+            <span class="modal-close" onclick="cerrarModal()">&times;</span>
+            <div class="modal-header">
+                <h3>Detalle de Alerta de Integridad</h3>
+                <p id="det-fecha" style="color: var(--text-secondary); font-size: 0.8rem;"></p>
+            </div>
+
+            <div class="modal-grid">
+                
+                <div class="gauge-holder">
+                    <div>
+                        <div class="large-score" id="det-riesgo">--%</div>
+                        <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight:600; text-transform:uppercase;">Puntaje Riesgo ML</span>
+                    </div>
+                    <div style="border-left: 1px solid rgba(255,255,255,0.06); padding-left: 20px;">
+                        <div class="large-score" id="det-plagio" style="color: var(--accent-pink)">--%</div>
+                        <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight:600; text-transform:uppercase;">Similitud Plagio</span>
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <span class="label">Estudiante</span>
+                    <span class="value" id="det-estudiante">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Código Estudiante</span>
+                    <span class="value" id="det-estudiante-codigo">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Facultad</span>
+                    <span class="value" id="det-facultad">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Especialidad Carrera</span>
+                    <span class="value" id="det-carrera">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Curso Evaluado</span>
+                    <span class="value" id="det-curso">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Docente a Cargo</span>
+                    <span class="value" id="det-docente">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Sede Campus</span>
+                    <span class="value" id="det-sede">--</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Tipo de Prueba</span>
+                    <span class="value" id="det-prueba">--</span>
+                </div>
+                <div class="detail-item" style="grid-column: span 2;">
+                    <span class="label">Descripción Tipo de Fraude</span>
+                    <span class="value" id="det-fraude-desc">--</span>
+                </div>
+                
+                <div class="detail-item" style="grid-column: span 2; margin-top: 10px;">
+                    <label for="change-estado" class="label" style="margin-bottom: 6px;">Cambiar Estado del Caso</label>
+                    <select id="change-estado" class="input-glass" style="width: 100%;">
+                        <option value="PENDIENTE">PENDIENTE</option>
+                        <option value="EN_REVISION">EN REVISIÓN</option>
+                        <option value="CERRADO">CERRADO</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-primary" id="btn-save-estado">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        let listadoAlertas = [];
+        let casoSeleccionado = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (!ApiClient.validarSesion()) return;
+
+            // Perfil
+            const user = ApiClient.obtenerUsuarioLogueado();
+            document.getElementById("user-display-name").textContent = user.nombre;
+            document.getElementById("user-display-role").textContent = user.rol;
+            document.getElementById("user-avatar-text").textContent = user.nombre.substring(0,2).toUpperCase();
+            document.getElementById("current-date").textContent = new Date().toISOString().slice(0,10);
+            
+            // Decano RLS check
+            if (user.rol === "DECANO") {
+                const filterFac = document.getElementById("filter-facultad");
+                filterFac.value = user.facultad;
+                filterFac.disabled = true; // bloquear facultad
+                
+                const rlsLabel = document.createElement("span");
+                rlsLabel.className = "badge badge-revision";
+                rlsLabel.style.marginLeft = "10px";
+                rlsLabel.style.fontSize = "0.7rem";
+                rlsLabel.textContent = user.facultad;
+                document.querySelector(".header-title").appendChild(rlsLabel);
+            }
+
+            document.getElementById("btn-filtrar").addEventListener("click", () => cargarAlertas());
+            document.getElementById("btn-logout").addEventListener("click", () => ApiClient.cerrarSesion());
+            document.getElementById("btn-save-estado").addEventListener("click", () => guardarCambioEstado());
+            
+            cargarAlertas();
+        });
+
+        async function cargarAlertas() {
+            try {
+                const umbral = parseFloat(document.getElementById("filter-umbral").value) || 0;
+                const result = await ApiClient.getAlertas(umbral);
+                
+                if (result) {
+                    listadoAlertas = result;
+                    aplicarFiltrosFront();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function aplicarFiltrosFront() {
+            const fac = document.getElementById("filter-facultad").value.toLowerCase();
+            const grav = document.getElementById("filter-gravedad").value.toLowerCase();
+            const est = document.getElementById("filter-estado").value.toLowerCase();
+            
+            const filtradas = listadoAlertas.filter(a => {
+                const matchFac = !fac || a.facultad_nombre.toLowerCase().includes(fac);
+                const matchGrav = !grav || a.nivel_gravedad.toLowerCase() === grav;
+                const matchEst = !est || a.estado_caso.toLowerCase() === est;
+                return matchFac && matchGrav && matchEst;
+            });
+
+            renderTablaAlertas(filtradas);
+        }
+
+        function renderTablaAlertas(alertas) {
+            const tbody = document.getElementById("table-body-alertas");
+            tbody.innerHTML = "";
+
+            if (alertas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 30px;">No se encontraron registros de alertas bajo los criterios seleccionados.</td></tr>`;
+                return;
+            }
+
+            alertas.forEach(a => {
+                const tr = document.createElement("tr");
+                
+                let badgeGrav = "badge-leve";
+                if (a.nivel_gravedad === "GRAVE") badgeGrav = "badge-grave";
+                else if (a.nivel_gravedad === "MODERADO") badgeGrav = "badge-moderado";
+
+                tr.innerHTML = `
+                    <td><strong>${a.estudiante_codigo}</strong></td>
+                    <td>${a.estudiante_nombre}</td>
+                    <td>${a.facultad_nombre}</td>
+                    <td>${a.curso_nombre}</td>
+                    <td><span class="badge ${badgeGrav}">${a.nivel_gravedad}</span></td>
+                    <td>
+                        <div class="risk-indicator ${a.puntaje_riesgo >= 80 ? 'risk-high' : 'risk-medium'}">
+                            <span class="risk-dot"></span>
+                            <span>${a.puntaje_riesgo.toFixed(1)}%</span>
+                        </div>
+                    </td>
+                    <td><span class="badge badge-${a.estado_caso.toLowerCase().replace('_', '')}">${a.estado_caso}</span></td>
+                    <td>
+                        <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; border-radius:6px;" onclick="verDetalle(${a.id_incidente})">
+                            <i class="fa-solid fa-eye"></i> Inspeccionar
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function verDetalle(id) {
+            try {
+                const a = await ApiClient.getAlertaDetalle(id);
+                if (a) {
+                    casoSeleccionado = a;
+                    
+                    document.getElementById("det-riesgo").textContent = `${a.puntaje_riesgo.toFixed(1)}%`;
+                    document.getElementById("det-riesgo").style.color = a.puntaje_riesgo >= 80 ? "var(--accent-pink)" : "var(--accent-amber)";
+                    document.getElementById("det-plagio").textContent = `${a.porcentaje_similitud.toFixed(1)}%`;
+                    
+                    document.getElementById("det-fecha").textContent = `Detectado el: ${a.fecha_deteccion}`;
+                    document.getElementById("det-estudiante").textContent = a.estudiante_nombre;
+                    document.getElementById("det-estudiante-codigo").textContent = a.estudiante_codigo;
+                    document.getElementById("det-facultad").textContent = a.facultad_nombre;
+                    document.getElementById("det-carrera").textContent = a.estudiante_carrera;
+                    document.getElementById("det-curso").textContent = `${a.curso_codigo} - ${a.curso_nombre}`;
+                    document.getElementById("det-docente").textContent = a.docente_nombre;
+                    document.getElementById("det-sede").textContent = a.sede_nombre;
+                    document.getElementById("det-prueba").textContent = a.tipo_prueba;
+                    document.getElementById("det-fraude-desc").textContent = `${a.tipo_fraude_nombre} (${a.nivel_gravedad}): ${a.tipo_fraude_descripcion || 'No descrita'}`;
+                    
+                    document.getElementById("change-estado").value = a.estado_caso;
+
+                    document.getElementById("modal-detalle").style.display = "flex";
+                }
+            } catch (err) {
+                console.error("Error al cargar detalle:", err);
+            }
+        }
+
+        function cerrarModal() {
+            document.getElementById("modal-detalle").style.display = "none";
+            casoSeleccionado = null;
+        }
+
+        async function guardarCambioEstado() {
+            if (!casoSeleccionado) return;
+            const nuevoEstado = document.getElementById("change-estado").value;
+            
+            try {
+                const res = await ApiClient.actualizarAlertaEstado(casoSeleccionado.id_incidente, nuevoEstado);
+                if (res) {
+                    cerrarModal();
+                    cargarAlertas(); // recargar
+                }
+            } catch (err) {
+                alert("Error al guardar estado: " + err.message);
+            }
+        }
+    </script>
+</body>
+</html>
