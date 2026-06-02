@@ -16,11 +16,16 @@ import pyodbc
 from datetime import datetime
 
 # ─── CONFIGURACIÓN ───────────────────────────────────────────────
-DB_SERVER   = "MELIODAS\\INTEGRITY"
-DB_DATABASE = "IntegrityCheckAI"
-DB_USER     = "sa"
-DB_PASS     = "Admin123!"
-MODELOS_DIR = os.path.join(os.path.dirname(__file__), "..", "ML", "modelos")
+from dotenv import load_dotenv
+# Intentar cargar .env del directorio del script o del directorio padre
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
+
+DB_SERVER   = os.getenv("DB_SERVER", "MELIODAS\\INTEGRITY")
+DB_DATABASE = os.getenv("DB_DATABASE", "IntegrityCheckAI")
+DB_USER     = os.getenv("DB_USERNAME", "sa")
+DB_PASS     = os.getenv("DB_PASSWORD", "Admin123!")
+MODELOS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "ML", "modelos"))
 
 def log(capa, msg, ok=True):
     estado = "✅" if ok else "❌"

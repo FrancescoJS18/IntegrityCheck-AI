@@ -323,6 +323,32 @@ def get_tipos_fraude():
     return jsonify(datos), 200
 
 
+# 13. Abrir Power BI localmente en el Host de Windows /api/open-powerbi
+@app.route("/api/open-powerbi", methods=["GET"])
+def open_powerbi():
+    try:
+        # Resolver ruta del archivo pbix en el workspace
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        pbix_path = os.path.abspath(os.path.join(current_dir, "..", "IntegrityCheck_Dashboard.pbix"))
+        
+        # Fallback si no existe en esa ruta relativa
+        if not os.path.exists(pbix_path):
+            pbix_path = r"C:\Users\franc\avami\IntegrityCheck AI\IntegrityCheck_Dashboard.pbix"
+            
+        logging.info(f"Intentando abrir Power BI Desktop con: {pbix_path}")
+        
+        # os.startfile inicia la aplicación predeterminada asociada al archivo (.pbix -> Power BI)
+        os.startfile(pbix_path)
+        
+        return jsonify({
+            "mensaje": "Power BI Desktop iniciado correctamente.",
+            "ruta": pbix_path
+        }), 200
+    except Exception as e:
+        logging.error(f"Error al intentar abrir Power BI: {e}")
+        return jsonify({"mensaje": f"No se pudo abrir Power BI: {str(e)}"}), 500
+
+
 # --- Orquestación y Scheduler (APScheduler) ---
 # Tareas de fondo: ETL diario a las 2:00 AM y predicciones batch a las 6:00 AM
 scheduler = BackgroundScheduler()
