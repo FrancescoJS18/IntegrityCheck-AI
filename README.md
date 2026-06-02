@@ -25,7 +25,7 @@
 ```
 IntegrityCheck AI/
 ├── Front-End/
-│   └── demo_7capas.html          ← Demo interactivo del pipeline
+│   └── demo_7cargas.html          ← Demo interactivo del pipeline
 ├── integracion_ia_powerbi/       ← Integración IA + Power BI ⭐
 │   ├── README.md
 │   ├── conexion_powerbi.py       ← Pipeline Python completo
@@ -44,7 +44,7 @@ IntegrityCheck AI/
 
 ### Demo interactivo
 
-1. Abre `Front-End/demo_7capas.html` en Chrome o Edge
+1. Abre `Front-End/demo_7cargas.html` en Chrome o Edge
 2. Carga el archivo `data/estudiantes_lote1_500.xlsx`
 3. Haz clic en **▶ PROCESAR POR LAS 7 CAPAS BI**
 4. Navega capa por capa con el botón **Siguiente →**
