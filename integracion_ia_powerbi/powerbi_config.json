@@ -1,0 +1,34 @@
+{
+  "_comment": "Configuración de conexión para IntegrityCheck AI — Power BI Desktop",
+  "_instrucciones": "Edita server y database con tu SQL Server local antes de ejecutar conexion_powerbi.py",
+
+  "server": "localhost\\SQLEXPRESS",
+  "database": "IntegrityCheckDW",
+  "driver": "ODBC+Driver+17+for+SQL+Server",
+  "trusted_connection": "yes",
+
+  "powerbi_pbix_path": "C:\\Users\\franc\\avami\\IntegrityCheck AI\\IntegrityCheck_Dashboard.pbix",
+
+  "tablas_powerbi": [
+    "dw.v_dashboard_principal",
+    "dw.v_kpi_tasa_fraude",
+    "dw.v_kpi_turnitin",
+    "dw.v_kpi_nivel_riesgo",
+    "dw.v_kpi_notas",
+    "dw.v_kpi_tipos_fraude",
+    "dw.v_kpi_efectividad_ia"
+  ],
+
+  "filtros_dashboard": {
+    "facultad": ["Ingeniería", "Medicina", "Derecho", "Administración"],
+    "nivel_riesgo": ["BAJO", "MEDIO", "ALTO"],
+    "semestres": ["2024-I", "2024-II", "2025-I"],
+    "tipos_fraude": ["Plagio directo", "Copia entre pares", "Contrato de trampa"]
+  },
+
+  "fallback_csv": {
+    "enabled": true,
+    "output_path": "../data/resultados_ia.csv",
+    "_nota": "Si SQL Server no está disponible, los resultados se guardan en CSV"
+  }
+}

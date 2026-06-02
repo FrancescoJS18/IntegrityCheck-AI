@@ -52,7 +52,7 @@ class ConexionBD:
         # Construir Connection String
         # Nota: Usamos ODBC Driver 17 o 18 para SQL Server, que son los estándar
         drivers = [d for d in pyodbc.drivers() if 'SQL Server' in d]
-        driver = drivers[0] if drivers else 'ODBC Driver 17 for SQL Server'
+        driver = next((d for d in drivers if '17' in d or '18' in d), drivers[0] if drivers else 'ODBC Driver 17 for SQL Server')
         
         conn_str = f"DRIVER={{{driver}}};SERVER={self.server},{self.port};DATABASE={self.database};"
         

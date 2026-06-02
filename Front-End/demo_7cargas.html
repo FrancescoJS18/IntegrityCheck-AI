@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IntegrityCheck AI — Pipeline 7 Capas BI</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #050a14;
+    --surface: #0d1628;
+    --surface2: #111d35;
+    --border: #1e3055;
+    --accent: #00d4ff;
+    --accent2: #f5a623;
+    --accent3: #4cff91;
+    --danger: #ff4757;
+    --text: #e8f4fd;
+    --muted: #6b8aad;
+    --font-mono: 'Space Mono', monospace;
+    --font-body: 'DM Sans', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    position: relative; z-index: 10;
+    padding: 24px 40px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(5,10,20,.9);
+    backdrop-filter: blur(12px);
+  }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-icon {
+    width: 40px; height: 40px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), #0077cc);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .logo-text { font-family: var(--font-mono); font-size: 18px; letter-spacing: -0.5px; }
+  .logo-text span { color: var(--accent); }
+  .badge {
+    font-family: var(--font-mono); font-size: 11px;
+    padding: 4px 10px; border-radius: 20px;
+    border: 1px solid var(--accent); color: var(--accent);
+    letter-spacing: 1px;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main { position: relative; z-index: 1; padding: 40px; max-width: 1400px; margin: 0 auto; }
+
+  /* ── UPLOAD ZONE ── */
+  #uploadZone {
+    border: 2px dashed var(--border);
+    border-radius: 16px; padding: 60px;
+    text-align: center; cursor: pointer;
+    transition: all .3s; background: var(--surface);
+    margin-bottom: 32px;
+  }
+  #uploadZone:hover, #uploadZone.drag-over {
+    border-color: var(--accent);
+    background: rgba(0,212,255,.05);
+    transform: scale(1.005);
+  }
+  #uploadZone .upload-icon { font-size: 48px; margin-bottom: 16px; }
+  #uploadZone h3 { font-size: 22px; margin-bottom: 8px; }
+  #uploadZone p { color: var(--muted); font-size: 14px; }
+  #fileInput { display: none; }
+
+  /* ── FILE LOADED ── */
+  .file-loaded {
+    background: rgba(76,255,145,.08);
+    border: 1px solid rgba(76,255,145,.3);
+    border-radius: 12px; padding: 20px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px; display: none;
+  }
+  .file-info { display: flex; align-items: center; gap: 16px; }
+  .file-info .icon { font-size: 32px; }
+  .file-details h4 { font-size: 16px; color: var(--accent3); }
+  .file-details p { font-size: 13px; color: var(--muted); font-family: var(--font-mono); }
+  .btn-process {
+    background: linear-gradient(135deg, var(--accent), #0077cc);
+    color: #000; border: none; border-radius: 8px;
+    padding: 14px 32px; font-size: 15px; font-weight: 600;
+    cursor: pointer; font-family: var(--font-body);
+    transition: all .2s; letter-spacing: .3px;
+  }
+  .btn-process:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,212,255,.35); }
+
+  /* ── PIPELINE MAP ── */
+  .pipeline-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .pipeline-title { font-family: var(--font-mono); font-size: 13px; color: var(--muted); letter-spacing: 2px; }
+
+  .pipeline-track {
+    display: flex; align-items: center; gap: 0;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 24px;
+    margin-bottom: 32px; overflow-x: auto;
+  }
+  .pipe-node {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    flex-shrink: 0; cursor: pointer; padding: 8px 16px; border-radius: 8px;
+    transition: all .2s; position: relative;
+  }
+  .pipe-node:hover { background: rgba(0,212,255,.06); }
+  .pipe-node.active { background: rgba(0,212,255,.12); }
+  .pipe-node.done .node-num { background: var(--accent3); color: #000; }
+  .pipe-node.active .node-num { background: var(--accent); color: #000; animation: pulse 1.5s infinite; }
+  .node-num {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--surface2); border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+    transition: all .3s;
+  }
+  .node-label { font-size: 11px; color: var(--muted); text-align: center; max-width: 64px; line-height: 1.3; }
+  .pipe-node.active .node-label { color: var(--accent); }
+  .pipe-connector {
+    width: 32px; height: 2px; background: var(--border);
+    flex-shrink: 0; position: relative; overflow: hidden;
+  }
+  .pipe-connector.done::after {
+    content: ''; position: absolute; inset: 0;
+    background: var(--accent3); animation: fillLine .4s ease-out;
+  }
+  @keyframes fillLine { from { width: 0 } to { width: 100% } }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,212,255,.4)} 50%{box-shadow:0 0 0 8px rgba(0,212,255,0)} }
+
+  /* ── LAYER CARD ── */
+  .layer-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 40px;
+    display: none; animation: slideIn .35s ease-out;
+    min-height: 480px;
+  }
+  .layer-card.visible { display: block; }
+  @keyframes slideIn { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:translateY(0) } }
+
+  .layer-header {
+    display: flex; align-items: flex-start; gap: 20px;
+    margin-bottom: 36px; padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .layer-num-big {
+    font-family: var(--font-mono); font-size: 56px; font-weight: 700;
+    line-height: 1; color: var(--accent); opacity: .15;
+    flex-shrink: 0;
+  }
+  .layer-title-block h2 { font-size: 26px; font-weight: 600; margin-bottom: 6px; }
+  .layer-title-block p { color: var(--muted); font-size: 15px; line-height: 1.6; max-width: 640px; }
+  .layer-status {
+    margin-left: auto; flex-shrink: 0;
+    font-family: var(--font-mono); font-size: 11px;
+    padding: 6px 14px; border-radius: 20px; letter-spacing: 1px;
+  }
+  .status-running { background: rgba(0,212,255,.15); color: var(--accent); border: 1px solid rgba(0,212,255,.3); }
+  .status-done { background: rgba(76,255,145,.15); color: var(--accent3); border: 1px solid rgba(76,255,145,.3); }
+
+  /* ── LAYER CONTENT GRIDS ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+
+  .mini-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .mini-card h4 { font-size: 14px; color: var(--accent); margin-bottom: 10px; font-family: var(--font-mono); }
+  .mini-card p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .mini-card ul { list-style: none; }
+  .mini-card ul li { font-size: 13px; color: var(--muted); padding: 4px 0; border-bottom: 1px solid var(--border); }
+  .mini-card ul li:last-child { border-bottom: none; }
+  .mini-card ul li::before { content: '→ '; color: var(--accent); }
+
+  /* source badges */
+  .source-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 18px; margin: 6px;
+    font-size: 13px; transition: all .2s;
+  }
+  .source-badge:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .source-badge .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ETL flow */
+  .etl-flow { display: flex; align-items: stretch; gap: 0; }
+  .etl-box {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px; text-align: center;
+  }
+  .etl-box h3 { font-family: var(--font-mono); font-size: 16px; margin-bottom: 12px; }
+  .etl-box ul { list-style: none; text-align: left; }
+  .etl-box ul li { font-size: 12px; color: var(--muted); padding: 4px 0; }
+  .etl-box ul li::before { content: '✓ '; color: var(--accent3); }
+  .etl-arrow {
+    display: flex; align-items: center; padding: 0 12px;
+    color: var(--accent); font-size: 22px; flex-shrink: 0;
+  }
+
+  /* code block */
+  .code-block {
+    background: #020810; border: 1px solid var(--border); border-radius: 8px;
+    padding: 18px 20px; font-family: var(--font-mono); font-size: 12px;
+    line-height: 1.7; overflow-x: auto; margin-top: 12px;
+  }
+  .code-kw { color: #7dcfff; }
+  .code-fn { color: var(--accent3); }
+  .code-str { color: var(--accent2); }
+  .code-cm { color: #4a5568; }
+
+  /* snowflake schema */
+  .snowflake-wrap { position: relative; min-height: 320px; }
+  .fact-box {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    background: rgba(0,212,255,.12); border: 2px solid var(--accent);
+    border-radius: 12px; padding: 16px 20px; text-align: center;
+    min-width: 160px; z-index: 2;
+  }
+  .fact-box h4 { font-family: var(--font-mono); font-size: 13px; color: var(--accent); }
+  .fact-box p { font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .dim-box {
+    position: absolute; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; text-align: center; min-width: 110px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    transition: all .2s; cursor: default; z-index: 2;
+  }
+  .dim-box:hover { border-color: var(--accent); color: var(--text); transform: scale(1.05); }
+  .dim-label { color: var(--accent2); font-size: 10px; margin-bottom: 4px; letter-spacing: .5px; }
+  svg.schema-lines { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+
+  /* model cards */
+  .model-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px; position: relative; overflow: hidden;
+  }
+  .model-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+  .model-card.rf::before { background: var(--accent); }
+  .model-card.nlp::before { background: var(--accent2); }
+  .model-card.iso::before { background: var(--accent3); }
+  .model-card h4 { font-family: var(--font-mono); font-size: 14px; margin-bottom: 6px; }
+  .model-card .subtitle { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .metric-row { display: flex; justify-content: space-between; margin-top: 10px; }
+  .metric { text-align: center; }
+  .metric .val { font-family: var(--font-mono); font-size: 22px; font-weight: 700; }
+  .metric .lbl { font-size: 10px; color: var(--muted); letter-spacing: .5px; margin-top: 2px; }
+  .metric .val.green { color: var(--accent3); }
+  .metric .val.blue { color: var(--accent); }
+  .metric .val.orange { color: var(--accent2); }
+
+  /* KPI cards */
+  .kpi-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; text-align: center;
+  }
+  .kpi-card .kpi-val { font-family: var(--font-mono); font-size: 32px; font-weight: 700; color: var(--accent); }
+  .kpi-card .kpi-label { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .kpi-card .kpi-formula { font-family: var(--font-mono); font-size: 10px; color: var(--border); margin-top: 8px; }
+
+  /* LOGS */
+  .log-panel {
+    background: #020810; border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px; height: 140px; overflow-y: auto; font-family: var(--font-mono);
+    font-size: 11px; line-height: 1.8;
+  }
+  .log-line { animation: fadeIn .3s ease; }
+  .log-line.ok { color: var(--accent3); }
+  .log-line.info { color: var(--accent); }
+  .log-line.warn { color: var(--accent2); }
+  @keyframes fadeIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:none} }
+
+  /* PROGRESS */
+  .progress-wrap { margin: 20px 0; }
+  .progress-label { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .progress-bar { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--accent3)); transition: width .8s ease; }
+
+  /* NAVIGATION */
+  .nav-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--border);
+  }
+  .btn-nav {
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text); border-radius: 8px; padding: 12px 24px;
+    font-size: 14px; font-family: var(--font-body); cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-nav:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-nav-primary {
+    background: linear-gradient(135deg, var(--accent), #0077cc);
+    color: #000; border: none; border-radius: 8px; padding: 13px 28px;
+    font-size: 14px; font-weight: 600; font-family: var(--font-body);
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    transition: all .2s;
+  }
+  .btn-nav-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,212,255,.3); }
+  .btn-powerbi {
+    background: linear-gradient(135deg, #f5a623, #e8960a);
+    color: #000; border: none; border-radius: 8px; padding: 13px 28px;
+    font-size: 14px; font-weight: 600; font-family: var(--font-body);
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    transition: all .2s;
+  }
+  .btn-powerbi:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(245,166,35,.3); }
+  .step-indicator { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+
+  /* CHART WRAPPER */
+  .chart-wrap { position: relative; height: 220px; }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: var(--surface2); color: var(--muted); font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 14px; border-bottom: 1px solid rgba(30,48,85,.5); }
+  tr:hover td { background: rgba(0,212,255,.03); }
+  .badge-ok { background: rgba(76,255,145,.15); color: var(--accent3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-family: var(--font-mono); }
+  .badge-warn { background: rgba(245,166,35,.15); color: var(--accent2); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-family: var(--font-mono); }
+  .badge-err { background: rgba(255,71,87,.15); color: var(--danger); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-family: var(--font-mono); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.75);
+    z-index: 100; display: flex; align-items: center; justify-content: center;
+    display: none;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 40px; max-width: 520px; width: 90%;
+    animation: slideIn .3s ease;
+  }
+  .modal h3 { font-size: 20px; margin-bottom: 8px; }
+  .modal p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .path-box {
+    background: #020810; border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 16px; font-family: var(--font-mono); font-size: 12px; color: var(--accent2);
+    margin-bottom: 20px; word-break: break-all;
+  }
+  .modal-btns { display: flex; gap: 12px; }
+  .btn-copy {
+    flex: 1; background: var(--accent2); color: #000; border: none;
+    border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all .2s;
+  }
+  .btn-copy:hover { opacity: .85; }
+  .btn-close {
+    background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 20px; font-size: 14px; cursor: pointer;
+  }
+
+  /* CHART FILTER ROW */
+  .filter-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+  .filter-btn {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .5px;
+    padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
+    background: var(--surface2); color: var(--muted); cursor: pointer; transition: all .2s;
+  }
+  .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,.1); }
+  .filter-btn:hover { border-color: var(--muted); color: var(--text); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-icon">🔍</div>
+    <div class="logo-text">Integrity<span>Check</span> AI</div>
+  </div>
+  <div class="badge">PIPELINE BI · 7 CAPAS</div>
+</header>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- UPLOAD ZONE -->
+  <div id="uploadZone" onclick="document.getElementById('fileInput').click()">
+    <div class="upload-icon">📊</div>
+    <h3>Cargar lote de estudiantes</h3>
+    <p>Arrastra tu archivo .xlsx aquí, o haz clic para seleccionarlo</p>
+    <p style="margin-top:8px;font-family:var(--font-mono);font-size:12px;color:var(--border)">Columnas: id_estudiante · nombre · nota_final · similitud_turnitin · tipo_fraude_detectado…</p>
+  </div>
+  <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+
+  <!-- FILE LOADED BAR -->
+  <div class="file-loaded" id="fileLoaded">
+    <div class="file-info">
+      <span class="icon">📁</span>
+      <div class="file-details">
+        <h4 id="fileName">archivo.xlsx</h4>
+        <p id="fileStats">0 registros cargados</p>
+      </div>
+    </div>
+    <button class="btn-process" onclick="startPipeline()">▶ PROCESAR POR LAS 7 CAPAS BI</button>
+  </div>
+
+  <!-- PIPELINE TRACK -->
+  <div id="pipelineSection" style="display:none">
+    <div class="pipeline-header">
+      <span class="pipeline-title">PIPELINE DE PROCESAMIENTO</span>
+      <span id="globalStatus" style="font-family:var(--font-mono);font-size:12px;color:var(--muted)"></span>
+    </div>
+
+    <div class="pipeline-track">
+      <div class="pipe-node" id="node-1" onclick="goToLayer(1)">
+        <div class="node-num">1</div>
+        <div class="node-label">Fuentes de Datos</div>
+      </div>
+      <div class="pipe-connector" id="conn-1"></div>
+      <div class="pipe-node" id="node-2" onclick="goToLayer(2)">
+        <div class="node-num">2</div>
+        <div class="node-label">Staging Area</div>
+      </div>
+      <div class="pipe-connector" id="conn-2"></div>
+      <div class="pipe-node" id="node-3" onclick="goToLayer(3)">
+        <div class="node-num">3</div>
+        <div class="node-label">ETL</div>
+      </div>
+      <div class="pipe-connector" id="conn-3"></div>
+      <div class="pipe-node" id="node-4" onclick="goToLayer(4)">
+        <div class="node-num">4</div>
+        <div class="node-label">Data Warehouse</div>
+      </div>
+      <div class="pipe-connector" id="conn-4"></div>
+      <div class="pipe-node" id="node-5" onclick="goToLayer(5)">
+        <div class="node-num">5</div>
+        <div class="node-label">IA & Modelos</div>
+      </div>
+      <div class="pipe-connector" id="conn-5"></div>
+      <div class="pipe-node" id="node-6" onclick="goToLayer(6)">
+        <div class="node-num">6</div>
+        <div class="node-label">KPIs Semánticos</div>
+      </div>
+      <div class="pipe-connector" id="conn-6"></div>
+      <div class="pipe-node" id="node-7" onclick="goToLayer(7)">
+        <div class="node-num">7</div>
+        <div class="node-label">Visualización</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         CAPA 1 — FUENTES DE DATOS
+    ══════════════════════════════════════════ -->
+    <div class="layer-card" id="layer-1">
+      <div class="layer-header">
+        <div class="layer-num-big">01</div>
+        <div class="layer-title-block">
+          <h2>🗄 Capa 1 — Fuentes de Datos</h2>
+          <p>Ingesta de datos crudos desde múltiples sistemas académicos. Cada fuente aporta dimensiones distintas del comportamiento del estudiante para construir un perfil integral de integridad académica.</p>
+        </div>
+        <div class="layer-status status-running" id="status-1">INGESTA</div>
+      </div>
+
+      <div style="margin-bottom:28px">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;font-family:var(--font-mono);letter-spacing:1px">FUENTES CONECTADAS</p>
+        <div style="display:flex;flex-wrap:wrap">
+          <div class="source-badge"><span class="dot" style="background:#4cff91"></span>SGA — Sistema de Gestión Académica</div>
+          <div class="source-badge"><span class="dot" style="background:#00d4ff"></span>LMS — Plataforma de Aprendizaje</div>
+          <div class="source-badge"><span class="dot" style="background:#f5a623"></span>Turnitin — Motor Anti-Plagio</div>
+          <div class="source-badge"><span class="dot" style="background:#ff4757"></span>Sistema de Exámenes Online</div>
+          <div class="source-badge"><span class="dot" style="background:#a29bfe"></span>📊 Excel Cargado — <span id="src-rows">0</span> registros</div>
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin-bottom:24px">
+        <div class="mini-card">
+          <h4>📥 CAMPOS RECIBIDOS</h4>
+          <ul>
+            <li>id_estudiante (PK)</li>
+            <li>nombre, apellido</li>
+            <li>facultad, curso, docente</li>
+            <li>nota_parcial, nota_final</li>
+            <li>similitud_turnitin (%)</li>
+            <li>score_riesgo (0–100)</li>
+            <li>tipo_fraude_detectado</li>
+          </ul>
+        </div>
+        <div class="mini-card">
+          <h4>⚠ PROBLEMAS DETECTADOS</h4>
+          <ul>
+            <li id="prob-nulls">Nulos en nota_final: —</li>
+            <li id="prob-dup">Duplicados detectados: —</li>
+            <li id="prob-range">Fuera de rango (>100): —</li>
+            <li id="prob-turnitin">Turnitin sin datos: —</li>
+          </ul>
+        </div>
+        <div class="mini-card">
+          <h4>📊 RESUMEN DE LOTE</h4>
+          <ul>
+            <li id="sum-total">Total registros: —</li>
+            <li id="sum-facult">Facultades: —</li>
+            <li id="sum-semestre">Semestres: —</li>
+            <li id="sum-riesgo">Alto riesgo (≥70): —</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Progreso de ingesta</span><span id="prog1-pct">0%</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="prog1" style="width:0%"></div></div>
+      </div>
+      <div class="log-panel" id="log1"></div>
+
+      <div class="nav-row">
+        <div></div>
+        <span class="step-indicator">CAPA 1 / 7</span>
+        <button class="btn-nav-primary" onclick="goToLayer(2)">Siguiente: Staging Area →</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         CAPA 2 — STAGING AREA
+    ══════════════════════════════════════════ -->
+    <div class="layer-card" id="layer-2">
+      <div class="layer-header">
+        <div class="layer-num-big">02</div>
+        <div class="layer-title-block">
+          <h2>🔬 Capa 2 — Staging Area</h2>
+          <p>Zona de cuarentena donde los datos crudos son validados contra reglas de negocio antes de entrar al pipeline de transformación. Los registros que no pasan son marcados para revisión manual.</p>
+        </div>
+        <div class="layer-status status-running" id="status-2">VALIDACIÓN</div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:24px">
+        <div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:12px;font-family:var(--font-mono);letter-spacing:1px">REGLAS DE VALIDACIÓN</p>
+          <table>
+            <thead><tr><th>REGLA</th><th>CAMPO</th><th>CONDICIÓN</th><th>ESTADO</th></tr></thead>
+            <tbody>
+              <tr><td>VR-01</td><td>nota_final</td><td>BETWEEN 0 AND 20</td><td><span class="badge-ok">PASS</span></td></tr>
+              <tr><td>VR-02</td><td>similitud_turnitin</td><td>BETWEEN 0 AND 100</td><td><span class="badge-ok">PASS</span></td></tr>
+              <tr><td>VR-03</td><td>id_estudiante</td><td>NOT NULL, UNIQUE</td><td><span class="badge-ok">PASS</span></td></tr>
+              <tr><td>VR-04</td><td>score_riesgo</td><td>BETWEEN 0 AND 100</td><td><span class="badge-ok">PASS</span></td></tr>
+              <tr><td>VR-05</td><td>facultad</td><td>IN (lista válida)</td><td><span class="badge-ok">PASS</span></td></tr>
+              <tr><td>VR-06</td><td>tipo_fraude</td><td>NOT NULL si score≥60</td><td><span class="badge-warn">WARN</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:12px;font-family:var(--font-mono);letter-spacing:1px">CUARENTENA</p>
+          <div class="mini-card" style="margin-bottom:12px">
+            <h4>🚫 REGISTROS EN CUARENTENA</h4>
+            <p id="quarantine-count" style="font-family:var(--font-mono);font-size:28px;color:var(--danger);margin:8px 0">—</p>
+            <p>Motivo principal: campo tipo_fraude vacío con score ≥ 60</p>
+          </div>
+          <div class="mini-card">
+            <h4>✅ REGISTROS APROBADOS</h4>
+            <p id="approved-count" style="font-family:var(--font-mono);font-size:28px;color:var(--accent3);margin:8px 0">—</p>
+            <p>Listos para transformación ETL</p>
+          </div>
+        </div>
+      </div>
+
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;font-family:var(--font-mono);letter-spacing:1px">MUESTRA DE REGISTROS EN STAGING</p>
+      <table id="stagingTable">
+        <thead><tr><th>ID</th><th>NOMBRE</th><th>FACULTAD</th><th>NOTA FINAL</th><th>TURNITIN %</th><th>SCORE RIESGO</th><th>ESTADO</th></tr></thead>
+        <tbody id="stagingBody"></tbody>
+      </table>
+
+      <div class="nav-row">
+        <button class="btn-nav" onclick="goToLayer(1)">← Anterior</button>
+        <span class="step-indicator">CAPA 2 / 7</span>
+        <button class="btn-nav-primary" onclick="goToLayer(3)">Siguiente: ETL →</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         CAPA 3 — ETL
+    ══════════════════════════════════════════ -->
+    <div class="layer-card" id="layer-3">
+      <div class="layer-header">
+        <div class="layer-num-big">03</div>
+        <div class="layer-title-block">
+          <h2>⚙ Capa 3 — ETL (Extract · Transform · Load)</h2>
+          <p>Proceso de extracción, normalización y carga estructurada. Los datos crudos se transforman en hechos y dimensiones compatibles con el esquema en copo de nieve del Data Warehouse.</p>
+        </div>
+        <div class="layer-status status-running">ETL ACTIVO</div>
+      </div>
+
+      <div class="etl-flow" style="margin-bottom:28px">
+        <div class="etl-box" style="border-color:rgba(0,212,255,.4)">
+          <h3 style="color:var(--accent)">📤 EXTRACT</h3>
+          <ul>
+            <li>Lee Excel / CSV cargado</li>
+            <li>Conecta SGA via API REST</li>
+            <li>Obtiene datos Turnitin</li>
+            <li>Extrae logs de LMS</li>
+            <li>Carga tablas relacionales</li>
+          </ul>
+        </div>
+        <div class="etl-arrow">→</div>
+        <div class="etl-box" style="border-color:rgba(245,166,35,.4)">
+          <h3 style="color:var(--accent2)">🔄 TRANSFORM</h3>
+          <ul>
+            <li>Normaliza nombres y IDs</li>
+            <li>Estandariza escalas (0–20)</li>
+            <li>Calcula score_riesgo final</li>
+            <li>Clasifica tipo de fraude</li>
+            <li>Genera surrogate keys</li>
+            <li>Hashea datos sensibles</li>
+          </ul>
+        </div>
+        <div class="etl-arrow">→</div>
+        <div class="etl-box" style="border-color:rgba(76,255,145,.4)">
+          <h3 style="color:var(--accent3)">📥 LOAD</h3>
+          <ul>
+            <li>Inserta en FactIncidente</li>
+            <li>Actualiza DimEstudiante</li>
+            <li>Carga DimDocente</li>
+            <li>Actualiza DimTiempoAcad</li>
+            <li>Registra en audit log</li>
+          </ul>
+        </div>
+      </div>
+
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px;font-family:var(--font-mono);letter-spacing:1px">TRANSFORMACIONES SQL EJECUTADAS</p>
+      <div class="code-block">
+<span class="code-cm">-- C3: Normalización de score y clasificación de riesgo</span>
+<span class="code-kw">WITH</span> cte_normalizado <span class="code-kw">AS</span> (
+  <span class="code-kw">SELECT</span>
+    id_estudiante,
+    nombre, apellido, facultad,
+    <span class="code-fn">ROUND</span>(nota_final, 2) <span class="code-kw">AS</span> nota_norm,
+    similitud_turnitin,
+    <span class="code-fn">CASE</span>
+      <span class="code-kw">WHEN</span> score_riesgo <span class="code-kw">BETWEEN</span> 0  <span class="code-kw">AND</span> 39 <span class="code-kw">THEN</span> <span class="code-str">'BAJO'</span>
+      <span class="code-kw">WHEN</span> score_riesgo <span class="code-kw">BETWEEN</span> 40 <span class="code-kw">AND</span> 69 <span class="code-kw">THEN</span> <span class="code-str">'MEDIO'</span>
+      <span class="code-kw">ELSE</span> <span class="code-str">'ALTO'</span>
+    <span class="code-kw">END AS</span> nivel_riesgo
+  <span class="code-kw">FROM</span> staging.incidentes_raw
+  <span class="code-kw">WHERE</span> _staging_status = <span class="code-str">'APROBADO'</span>
+)
+<span class="code-kw">INSERT INTO</span> dw.FactIncidenteFraude
+  (sk_estudiante, sk_tiempo, nota_final, similitud_turnitin, nivel_riesgo, score_riesgo)
+<span class="code-kw">SELECT</span>
+  e.sk_estudiante, t.sk_tiempo,
+  n.nota_norm, n.similitud_turnitin, n.nivel_riesgo, s.score_riesgo
+<span class="code-kw">FROM</span> cte_normalizado n
+<span class="code-kw">JOIN</span> dw.DimEstudiante e <span class="code-kw">ON</span> e.id_estudiante = n.id_estudiante
+<span class="code-kw">JOIN</span> dw.DimTiempoAcad t <span class="code-kw">ON</span> t.semestre = n.semestre;
+      </div>
+
+      <div class="nav-row">
+        <button class="btn-nav" onclick="goToLayer(2)">← Anterior</button>
+        <span class="step-indicator">CAPA 3 / 7</span>
+        <button class="btn-nav-primary" onclick="goToLayer(4)">Siguiente: Data Warehouse →</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         CAPA 4 — DATA WAREHOUSE (COPO DE NIEVE)
+    ══════════════════════════════════════════ -->
+    <div class="layer-card" id="layer-4">
+      <div class="layer-header">
+        <div class="layer-num-big">04</div>
+        <div class="layer-title-block">
+          <h2>🗃 Capa 4 — Data Warehouse</h2>
+          <p>Esquema en <strong style="color:var(--accent)">Copo de Nieve (Snowflake Schema)</strong>. La tabla de hechos central se conecta a dimensiones normalizadas que a su vez tienen sub-dimensiones. Optimizado para consultas analíticas de alto rendimiento.</p>
+        </div>
+        <div class="layer-status status-done">SNOWFLAKE</div>
+      </div>
+
+      <!-- SNOWFLAKE DIAGRAM -->
+      <div class="snowflake-wrap" style="height:360px;margin-bottom:28px">
+        <svg class="schema-lines" id="schemaLines"></svg>
+        <!-- FACT -->
+        <div class="fact-box" style="top:50%;left:50%">
+          <h4>⭐ FactIncidenteFraude</h4>
+          <p>sk_estudiante · sk_docente<br>sk_tiempo · sk_facultad<br>nota_final · similitud_turnitin<br>score_riesgo · tipo_fraude</p>
+        </div>
+        <!-- DIM ESTUDIANTE top -->
+        <div class="dim-box" style="top:4%;left:50%;transform:translateX(-50%)">
+          <div class="dim-label">DIM</div>DimEstudiante<br><span style="font-size:9px;color:var(--border)">id · nombre · email</span>
+        </div>
+        <!-- DIM DOCENTE right -->
+        <div class="dim-box" style="top:18%;right:4%;transform:translateY(-50%)">
+          <div class="dim-label">DIM</div>DimDocente<br><span style="font-size:9px;color:var(--border)">id · nombre · dept</span>
+        </div>
+        <!-- DIM FRAUDE bottom-right -->
+        <div class="dim-box" style="bottom:4%;right:10%">
+          <div class="dim-label">DIM</div>DimTipoFraude<br><span style="font-size:9px;color:var(--border)">codigo · categoria</span>
+        </div>
+        <!-- DIM TIEMPO bottom -->
+        <div class="dim-box" style="bottom:4%;left:50%;transform:translateX(-50%)">
+          <div class="dim-label">DIM</div>DimTiempoAcad<br><span style="font-size:9px;color:var(--border)">semestre · año · ciclo</span>
+        </div>
+        <!-- DIM FACULTAD bottom-left -->
+        <div class="dim-box" style="bottom:4%;left:10%">
+          <div class="dim-label">DIM</div>DimFacultad<br><span style="font-size:9px;color:var(--border)">id · nombre · sede</span>
+        </div>
+        <!-- DIM RIESGO left -->
+        <div class="dim-box" style="top:18%;left:4%;transform:translateY(-50%)">
+          <div class="dim-label">DIM</div>DimNivelRiesgo<br><span style="font-size:9px;color:var(--border)">bajo · medio · alto</span>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="mini-card">
+          <h4>📊 VOLUMETRÍA DW</h4>
+          <ul>
+            <li id="dw-filas">FactIncidente: — filas</li>
+            <li>DimEstudiante: 2,840 filas</li>
+            <li>DimDocente: 186 filas</li>
+            <li>DimFacultad: 4 filas</li>
+            <li>DimTiempoAcad: 12 filas</li>
+          </ul>
+        </div>
+        <div class="mini-card">
+          <h4>⚡ ÍNDICES CREADOS</h4>
+          <ul>
+            <li>IX_fact_estudiante (sk_est)</li>
+            <li>IX_fact_tiempo (sk_tiempo)</li>
+            <li>IX_fact_riesgo (score_riesgo)</li>
+            <li>IX_fact_fraude (tipo_fraude)</li>
+          </ul>
+        </div>
+        <div class="mini-card">
+          <h4>🔗 RELACIONES FK</h4>
+          <ul>
+            <li>Fact → DimEstudiante (N:1)</li>
+            <li>Fact → DimDocente (N:1)</li>
+            <li>Fact → DimFacultad (N:1)</li>
+            <li>Fact → DimTiempoAcad (N:1)</li>
+            <li>Fact → DimTipoFraude (N:1)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn-nav" onclick="goToLayer(3)">← Anterior</button>
+        <span class="step-indicator">CAPA 4 / 7</span>
+        <button class="btn-nav-primary" onclick="goToLayer(5)">Siguiente: IA & Modelos →</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         CAPA 5 — IA & MODELOS
+    ══════════════════════════════════════════ -->
+    <div class="layer-card" id="layer-5">
+      <div class="layer-header">
+        <div class="layer-num-big">05</div>
+        <div class="layer-title-block">
+          <h2>🤖 Capa 5 — Inteligencia Artificial</h2>
+          <p>Tres modelos de ML trabajan en paralelo: detección supervisada de fraude, análisis semántico de texto y detección de anomalías no supervisada. Los resultados se combinan en un score de riesgo unificado.</p>
+        </div>
+        <div class="layer-status status-done">3 MODELOS</div>
+      </div>
+
+      <div class="grid-3" style="margin-bottom:28px">
+        <div class="model-card rf">
+          <h4>🌲 Random Forest</h4>
+          <div class="subtitle">Clasificación supervisada de fraude académico</div>
+          <div class="metric-row">
+            <div class="metric"><div class="val green">94.2%</div><div class="lbl">ACCURACY</div></div>
+            <div class="metric"><div class="val green">91.8%</div><div class="lbl">PRECISION</div></div>
+            <div class="metric"><div class="val green">93.1%</div><div class="lbl">RECALL</div></div>
+            <div class="metric"><div class="val green">92.4%</div><div class="lbl">F1-SCORE</div></div>
+          </div>
+          <div style="margin-top:14px">
+            <p style="font-size:11px;color:var(--muted)">Features más importantes:</p>
+            <p style="font-family:var(--font-mono);font-size:11px;color:var(--text);margin-top:4px">similitud_turnitin (0.41) · score_riesgo (0.28) · nota_final (0.18)</p>
+          </div>
+        </div>
+        <div class="model-card nlp">
+          <h4>📝 NLP — TF-IDF</h4>
+          <div class="subtitle">Detección de similitud semántica en entregas</div>
+          <div class="metric-row">
+            <div class="metric"><div class="val orange">87.5%</div><div class="lbl">SIMILARITY</div></div>
+            <div class="metric"><div class="val orange">0.78</div><div class="lbl">COSINE SIM</div></div>
+            <div class="metric"><div class="val orange">2,840</div><div class="lbl">DOCUMENTOS</div></div>
+          </div>
+          <div style="margin-top:14px">
+            <p style="font-size:11px;color:var(--muted)">Umbral de plagio detectado:</p>
+            <p style="font-family:var(--font-mono);font-size:11px;color:var(--text);margin-top:4px">≥ 40% similitud → alerta automática enviada</p>
+          </div>
+        </div>
+        <div class="model-card iso">
+          <h4>🔍 Isolation Forest</h4>
+          <div class="subtitle">Detección no supervisada de anomalías</div>
+          <div class="metric-row">
+            <div class="metric"><div class="val blue" id="anom-count">—</div><div class="lbl">ANOMALÍAS</div></div>
+            <div class="metric"><div class="val blue">-0.15</div><div class="lbl">SCORE MEDIO</div></div>
+            <div class="metric"><div class="val blue">5%</div><div class="lbl">CONTAMINACIÓN</div></div>
+          </div>
+          <div style="margin-top:14px">
+            <p style="font-size:11px;color:var(--muted)">Patrón principal detectado:</p>
+            <p style="font-family:var(--font-mono);font-size:11px;color:var(--text);margin-top:4px">Nota alta + turnitin alto + score riesgo alto</p>
+          </div>
+        </div>
+      </div>
+
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px;font-family:var(--font-mono);letter-spacing:1px">SCORE UNIFICADO — DISTRIBUCIÓN</p>
+      <div class="chart-wrap"><canvas id="chartRiesgo"></canvas></div>
+
+      <div class="nav-row">
+        <button class="btn-nav" onclick="goToLayer(4)">← Anterior</button>
+        <span class="step-indicator">CAPA 5 / 7</span>
+        <button class="btn-nav-primary" onclick="goToLayer(6)">Siguiente: KPIs →</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         CAPA 6 — KPIs SEMÁNTICOS
+    ══════════════════════════════════════════ -->
+    <div class="layer-card" id="layer-6">
+      <div class="layer-header">
+        <div class="layer-num-big">06</div>
+        <div class="layer-title-block">
+          <h2>📐 Capa 6 — KPIs Semánticos</h2>
+          <p>Métricas de alto nivel calculadas sobre el Data Warehouse. Cada KPI tiene una fórmula SQL trazable y un umbral de alerta. Estas métricas alimentan directamente el dashboard de Power BI.</p>
+        </div>
+        <div class="layer-status status-done">6 KPIs</div>
+      </div>
+
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="filterKPI('todas',this)">TODAS</button>
+        <button class="filter-btn" onclick="filterKPI('Ingeniería',this)">INGENIERÍA</button>
+        <button class="filter-btn" onclick="filterKPI('Medicina',this)">MEDICINA</button>
+        <button class="filter-btn" onclick="filterKPI('Derecho',this)">DERECHO</button>
+        <button class="filter-btn" onclick="filterKPI('Administración',this)">ADMINISTRACIÓN</button>
+      </div>
+
+      <div class="grid-3" style="margin-bottom:28px" id="kpiCards">
+        <div class="kpi-card">
+          <div class="kpi-val" id="kpi-tasa">—%</div>
+          <div class="kpi-label">Tasa de Incidentes de Fraude</div>
+          <div class="kpi-formula">COUNT(fraude=TRUE) / COUNT(*) × 100</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-val" id="kpi-turnitin">—%</div>
+          <div class="kpi-label">Similitud Promedio Turnitin</div>
+          <div class="kpi-formula">AVG(similitud_turnitin) por facultad</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-val" id="kpi-alto">—</div>
+          <div class="kpi-label">Estudiantes Alto Riesgo (≥70)</div>
+          <div class="kpi-formula">COUNT WHERE score_riesgo ≥ 70</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-val" id="kpi-notaprom">—</div>
+          <div class="kpi-label">Nota Promedio General</div>
+          <div class="kpi-formula">AVG(nota_final) WHERE aprobado</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-val" id="kpi-deteccion">—%</div>
+          <div class="kpi-label">Efectividad de Detección IA</div>
+          <div class="kpi-formula">Precision × Recall / (P+R) × 2</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-val" id="kpi-tiempo">—s</div>
+          <div class="kpi-label">Tiempo Medio de Procesamiento</div>
+          <div class="kpi-formula">AVG(ts_fin - ts_inicio) en segundos</div>
+        </div>
+      </div>
+
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px;font-family:var(--font-mono);letter-spacing:1px">KPIs POR FACULTAD</p>
+      <div class="chart-wrap"><canvas id="chartFacultad"></canvas></div>
+
+      <div class="nav-row">
+        <button class="btn-nav" onclick="goToLayer(5)">← Anterior</button>
+        <span class="step-indicator">CAPA 6 / 7</span>
+        <button class="btn-nav-primary" onclick="goToLayer(7)">Siguiente: Visualización →</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         CAPA 7 — VISUALIZACIÓN / POWER BI
+    ══════════════════════════════════════════ -->
+    <div class="layer-card" id="layer-7">
+      <div class="layer-header">
+        <div class="layer-num-big">07</div>
+        <div class="layer-title-block">
+          <h2>📊 Capa 7 — Visualización & Power BI</h2>
+          <p>Dashboard final con gráficos interactivos. Los KPIs calculados en C6 se visualizan aquí y sincronizan con Power BI Desktop via el archivo .pbix. Filtros disponibles por facultad, semestre y nivel de riesgo.</p>
+        </div>
+        <div class="layer-status status-done">COMPLETO</div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:24px">
+        <div class="mini-card">
+          <h4>📈 DISTRIBUCIÓN POR TIPO DE FRAUDE</h4>
+          <div class="chart-wrap" style="height:200px"><canvas id="chartFraude"></canvas></div>
+        </div>
+        <div class="mini-card">
+          <h4>🎯 RIESGO POR SEMESTRE</h4>
+          <div class="chart-wrap" style="height:200px"><canvas id="chartSemestre"></canvas></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="mini-card">
+          <h4>🏫 SCORE PROMEDIO POR FACULTAD</h4>
+          <div class="chart-wrap" style="height:200px"><canvas id="chartScore"></canvas></div>
+        </div>
+        <div class="mini-card">
+          <h4>📉 EVOLUCIÓN NOTA vs TURNITIN</h4>
+          <div class="chart-wrap" style="height:200px"><canvas id="chartCorr"></canvas></div>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn-nav" onclick="goToLayer(6)">← Anterior</button>
+        <span class="step-indicator">CAPA 7 / 7 — PIPELINE COMPLETO ✓</span>
+        <button class="btn-powerbi" onclick="openPowerBI()">⚡ ABRIR EN POWER BI</button>
+      </div>
+    </div>
+
+  </div><!-- end pipelineSection -->
+</main>
+
+<!-- MODAL POWER BI -->
+<div class="modal-overlay" id="pbiModal">
+  <div class="modal">
+    <h3>⚡ Abrir en Power BI Desktop</h3>
+    <p>El archivo .pbix contiene el dashboard con filtros por facultad, riesgo y semestre. Ábrelo y haz clic en <strong>Actualizar</strong> para cargar los datos del lote procesado.</p>
+    <div class="path-box">C:\Users\franc\avami\IntegrityCheck AI\IntegrityCheck_Dashboard.pbix</div>
+    <div style="margin-bottom:20px">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Filtros disponibles en el dashboard:</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <span class="filter-btn active">Facultad</span>
+        <span class="filter-btn active">Nivel de Riesgo</span>
+        <span class="filter-btn active">Semestre</span>
+        <span class="filter-btn active">Tipo de Fraude</span>
+        <span class="filter-btn active">Docente</span>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-copy" onclick="copyPath()">📋 Copiar Ruta</button>
+      <button class="btn-copy" style="background:var(--accent)" onclick="tryOpenPBI()">🚀 Intentar Abrir</button>
+      <button class="btn-close" onclick="closePBI()">Cerrar</button>
+    </div>
+    <p id="copyMsg" style="font-size:12px;color:var(--accent3);margin-top:12px;display:none">✓ Ruta copiada al portapapeles</p>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let currentLayer = 0;
+let loadedData = [];
+let charts = {};
+
+// ══════════════════════════════════════════
+// FILE UPLOAD
+// ══════════════════════════════════════════
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+function handleFile(file) {
+  if (!file) return;
+  document.getElementById('fileName').textContent = file.name;
+  // Generate mock rows based on file
+  const n = 500;
+  loadedData = generateData(n);
+  document.getElementById('fileStats').textContent = `${n} registros · ${(file.size/1024).toFixed(1)} KB`;
+  document.getElementById('src-rows').textContent = n;
+  document.getElementById('fileLoaded').style.display = 'flex';
+  uploadZone.style.display = 'none';
+}
+
+// ══════════════════════════════════════════
+// DATA GENERATION
+// ══════════════════════════════════════════
+function generateData(n) {
+  const facultades = ['Ingeniería','Medicina','Derecho','Administración'];
+  const fraudes = ['Plagio directo','Copia entre pares','Contrato de trampa','Sin incidente','Sin incidente','Sin incidente'];
+  const data = [];
+  for (let i = 0; i < n; i++) {
+    const score = Math.floor(Math.random()*100);
+    data.push({
+      id: `EST-${String(i+1).padStart(4,'0')}`,
+      nombre: `Estudiante ${i+1}`,
+      facultad: facultades[Math.floor(Math.random()*4)],
+      nota: +(Math.random()*20).toFixed(1),
+      turnitin: Math.floor(Math.random()*80),
+      score,
+      fraude: fraudes[Math.floor(Math.random()*fraudes.length)],
+      semestre: ['2024-I','2024-II','2025-I'][Math.floor(Math.random()*3)]
+    });
+  }
+  return data;
+}
+
+// ══════════════════════════════════════════
+// PIPELINE START
+// ══════════════════════════════════════════
+function startPipeline() {
+  document.getElementById('fileLoaded').style.display = 'none';
+  document.getElementById('pipelineSection').style.display = 'block';
+  goToLayer(1);
+}
+
+function goToLayer(n) {
+  // Hide all
+  for (let i=1;i<=7;i++) {
+    document.getElementById(`layer-${i}`).classList.remove('visible');
+    document.getElementById(`node-${i}`).classList.remove('active');
+  }
+  currentLayer = n;
+  document.getElementById(`layer-${n}`).classList.add('visible');
+  document.getElementById(`node-${n}`).classList.add('active');
+  // Mark done
+  for (let i=1;i<n;i++) {
+    document.getElementById(`node-${i}`).classList.add('done');
+    document.getElementById(`conn-${i}`).classList.add('done');
+  }
+  // Init layer content
+  initLayer(n);
+  window.scrollTo({top: 300, behavior:'smooth'});
+}
+
+// ══════════════════════════════════════════
+// LAYER INIT
+// ══════════════════════════════════════════
+function initLayer(n) {
+  if (n === 1) initLayer1();
+  if (n === 2) initLayer2();
+  if (n === 4) initLayer4();
+  if (n === 5) initLayer5();
+  if (n === 6) initLayer6();
+  if (n === 7) initLayer7();
+}
+
+function initLayer1() {
+  const total = loadedData.length;
+  const altoRiesgo = loadedData.filter(d=>d.score>=70).length;
+  const nulls = Math.floor(total*0.012);
+  const dups = Math.floor(total*0.004);
+  document.getElementById('prob-nulls').textContent = `Nulos en nota_final: ${nulls}`;
+  document.getElementById('prob-dup').textContent = `Duplicados detectados: ${dups}`;
+  document.getElementById('prob-range').textContent = `Fuera de rango (>100): 0`;
+  document.getElementById('prob-turnitin').textContent = `Turnitin sin datos: ${Math.floor(total*0.008)}`;
+  document.getElementById('sum-total').textContent = `Total registros: ${total}`;
+  document.getElementById('sum-facult').textContent = `Facultades: 4`;
+  document.getElementById('sum-semestre').textContent = `Semestres: 3`;
+  document.getElementById('sum-riesgo').textContent = `Alto riesgo (≥70): ${altoRiesgo}`;
+  animateProgress('prog1','prog1-pct',100,1400);
+  const logs = [
+    ['info','[C1] Iniciando ingesta desde Excel cargado...'],
+    ['ok','[C1] 500 registros leídos exitosamente'],
+    ['info','[C1] Conectando SGA via API REST...'],
+    ['ok','[C1] SGA: 2,840 registros de estudiantes activos'],
+    ['info','[C1] Cargando datos Turnitin...'],
+    ['ok','[C1] Turnitin: 496 registros con similitud disponible'],
+    ['warn',`[C1] 4 registros sin datos Turnitin → quarantine`],
+    ['ok','[C1] Ingesta completada · 500 registros listos'],
+  ];
+  playLogs('log1', logs);
+}
+
+function initLayer2() {
+  const total = loadedData.length;
+  const quarantine = Math.floor(total * 0.034);
+  const approved = total - quarantine;
+  document.getElementById('quarantine-count').textContent = quarantine;
+  document.getElementById('approved-count').textContent = approved;
+  // Sample table
+  const tbody = document.getElementById('stagingBody');
+  tbody.innerHTML = '';
+  loadedData.slice(0,8).forEach(d=>{
+    const estado = d.score >= 60 && d.fraude === 'Sin incidente' ? 'CUARENTENA' : 'APROBADO';
+    const badge = estado === 'APROBADO' ? 'badge-ok' : 'badge-warn';
+    tbody.innerHTML += `<tr>
+      <td style="font-family:var(--font-mono);font-size:11px">${d.id}</td>
+      <td>${d.nombre}</td>
+      <td>${d.facultad}</td>
+      <td style="font-family:var(--font-mono)">${d.nota}</td>
+      <td style="font-family:var(--font-mono)">${d.turnitin}%</td>
+      <td style="font-family:var(--font-mono)">${d.score}</td>
+      <td><span class="${badge}">${estado}</span></td>
+    </tr>`;
+  });
+}
+
+function initLayer4() {
+  const total = loadedData.length;
+  document.getElementById('dw-filas').textContent = `FactIncidente: ${total} filas`;
+}
+
+function initLayer5() {
+  const anom = Math.floor(loadedData.length * 0.05);
+  document.getElementById('anom-count').textContent = anom;
+  destroyChart('chartRiesgo');
+  const bajo = loadedData.filter(d=>d.score<40).length;
+  const medio = loadedData.filter(d=>d.score>=40&&d.score<70).length;
+  const alto = loadedData.filter(d=>d.score>=70).length;
+  charts.riesgo = new Chart(document.getElementById('chartRiesgo'), {
+    type: 'bar',
+    data: {
+      labels: ['BAJO (0–39)','MEDIO (40–69)','ALTO (70–100)'],
+      datasets: [{
+        label: 'Estudiantes',
+        data: [bajo, medio, alto],
+        backgroundColor: ['rgba(76,255,145,.7)','rgba(245,166,35,.7)','rgba(255,71,87,.7)'],
+        borderRadius: 6,
+      }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#6b8aad'}},x:{grid:{display:false},ticks:{color:'#6b8aad'}}} }
+  });
+}
+
+function initLayer6(filter='todas') {
+  let data = loadedData;
+  if (filter !== 'todas') data = loadedData.filter(d=>d.facultad===filter);
+  const tasa = data.filter(d=>d.fraude!=='Sin incidente').length / data.length * 100;
+  const avgTurnitin = data.reduce((a,d)=>a+d.turnitin,0)/data.length;
+  const alto = data.filter(d=>d.score>=70).length;
+  const avgNota = data.reduce((a,d)=>a+d.nota,0)/data.length;
+  document.getElementById('kpi-tasa').textContent = tasa.toFixed(1)+'%';
+  document.getElementById('kpi-turnitin').textContent = avgTurnitin.toFixed(1)+'%';
+  document.getElementById('kpi-alto').textContent = alto;
+  document.getElementById('kpi-notaprom').textContent = avgNota.toFixed(1);
+  document.getElementById('kpi-deteccion').textContent = '92.4%';
+  document.getElementById('kpi-tiempo').textContent = (Math.random()*0.5+0.3).toFixed(2)+'s';
+
+  destroyChart('chartFacultad');
+  const facs = ['Ingeniería','Medicina','Derecho','Administración'];
+  const scores = facs.map(f=>{
+    const sub = loadedData.filter(d=>d.facultad===f);
+    return +(sub.reduce((a,d)=>a+d.score,0)/sub.length).toFixed(1);
+  });
+  charts.facultad = new Chart(document.getElementById('chartFacultad'), {
+    type: 'bar',
+    data: {
+      labels: facs,
+      datasets: [{
+        label: 'Score Riesgo Promedio',
+        data: scores,
+        backgroundColor: ['rgba(0,212,255,.7)','rgba(76,255,145,.7)','rgba(245,166,35,.7)','rgba(255,71,87,.7)'],
+        borderRadius: 6,
+      }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{min:0,max:100,grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#6b8aad'}},x:{grid:{display:false},ticks:{color:'#6b8aad'}}} }
+  });
+}
+
+function initLayer7() {
+  // Fraude pie
+  destroyChart('chartFraude');
+  const tipos = ['Plagio directo','Copia entre pares','Contrato de trampa','Sin incidente'];
+  const counts = tipos.map(t=>loadedData.filter(d=>d.fraude===t).length);
+  charts.fraude = new Chart(document.getElementById('chartFraude'), {
+    type: 'doughnut',
+    data: { labels:tipos, datasets:[{data:counts, backgroundColor:['rgba(255,71,87,.8)','rgba(245,166,35,.8)','rgba(0,212,255,.8)','rgba(76,255,145,.5)'], borderWidth:0}] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom',labels:{color:'#6b8aad',font:{size:11}}}}}
+  });
+  // Semestre bar
+  destroyChart('chartSemestre');
+  const sems = ['2024-I','2024-II','2025-I'];
+  const semData = sems.map(s=>loadedData.filter(d=>d.semestre===s&&d.score>=70).length);
+  charts.semestre = new Chart(document.getElementById('chartSemestre'), {
+    type:'bar',
+    data:{labels:sems, datasets:[{label:'Alto Riesgo',data:semData,backgroundColor:'rgba(255,71,87,.7)',borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#6b8aad'}},x:{grid:{display:false},ticks:{color:'#6b8aad'}}}}
+  });
+  // Score por facultad
+  destroyChart('chartScore');
+  const facs=['Ingeniería','Medicina','Derecho','Administración'];
+  const scoreData=facs.map(f=>{const s=loadedData.filter(d=>d.facultad===f);return+(s.reduce((a,d)=>a+d.score,0)/s.length).toFixed(1);});
+  charts.score = new Chart(document.getElementById('chartScore'), {
+    type:'bar',
+    data:{labels:facs,datasets:[{label:'Score Riesgo',data:scoreData,backgroundColor:['rgba(0,212,255,.7)','rgba(76,255,145,.7)','rgba(245,166,35,.7)','rgba(255,71,87,.7)'],borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#6b8aad'}},x:{grid:{display:false},ticks:{color:'#6b8aad'}}}}
+  });
+  // Corr scatter
+  destroyChart('chartCorr');
+  const scatterData=loadedData.slice(0,80).map(d=>({x:d.turnitin,y:d.nota}));
+  charts.corr = new Chart(document.getElementById('chartCorr'), {
+    type:'scatter',
+    data:{datasets:[{label:'Nota vs Turnitin',data:scatterData,backgroundColor:'rgba(0,212,255,.4)',pointRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:'Turnitin %',color:'#6b8aad'},grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#6b8aad'}},y:{title:{display:true,text:'Nota Final',color:'#6b8aad'},grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#6b8aad'}}}}
+  });
+}
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+function animateProgress(barId, pctId, target, duration) {
+  const bar = document.getElementById(barId);
+  const pct = document.getElementById(pctId);
+  let current = 0;
+  const step = target / (duration / 50);
+  const iv = setInterval(()=>{
+    current = Math.min(current + step, target);
+    bar.style.width = current + '%';
+    pct.textContent = Math.floor(current) + '%';
+    if (current >= target) clearInterval(iv);
+  }, 50);
+}
+
+function playLogs(containerId, logs) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  logs.forEach((log, i) => {
+    setTimeout(()=>{
+      const div = document.createElement('div');
+      div.className = `log-line ${log[0]}`;
+      div.textContent = log[1];
+      el.appendChild(div);
+      el.scrollTop = el.scrollHeight;
+    }, i * 180);
+  });
+}
+
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function filterKPI(faculty, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  initLayer6(faculty);
+}
+
+// POWER BI
+function openPowerBI() { document.getElementById('pbiModal').classList.add('open'); }
+function closePBI() { document.getElementById('pbiModal').classList.remove('open'); }
+function copyPath() {
+  navigator.clipboard.writeText('C:\\Users\\franc\\avami\\IntegrityCheck AI\\IntegrityCheck_Dashboard.pbix').catch(()=>{});
+  document.getElementById('copyMsg').style.display = 'block';
+  setTimeout(()=>document.getElementById('copyMsg').style.display='none', 3000);
+}
+function tryOpenPBI() {
+  window.location.href = 'pbidesktop://open?file=C:\\Users\\franc\\avami\\IntegrityCheck+AI\\IntegrityCheck_Dashboard.pbix';
+  setTimeout(()=>{ copyPath(); }, 1000);
+}
+</script>
+</body>
+</html>
